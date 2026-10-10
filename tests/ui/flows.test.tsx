@@ -394,10 +394,100 @@ describe("plan export", () => {
     const downloads = captureDownloads();
     window.location.hash = "#/rebalance";
     renderWithApp(<App />, { demo: true });
-    await screen.findByText("IS3N");
+    await screen.findAllByText("IS3N");
     user.click(button("Export plan (CSV)"));
     const csv = await downloads.lastText();
     expect(csv).toContain("IE00BKM4GZ66,IS3N,1200.00,12.00,15.00,200.00");
     expect(downloads.names.at(-1)).toMatch(/^driftless-plan-.*\.csv$/);
+  });
+});
+
+describe("whole-unit plan", () => {
+  it("saves prices and costs and plans whole units from them", async () => {
+    renderWithApp(<App />);
+    await screen.findByRole("heading", { name: "Welcome to Driftless" });
+    await createPortfolioThroughUi("Units");
+
+    user.click(button("Add instrument"));
+    user.click(button("Add instrument"));
+    fillRow(0, { isin: A, value: "0", weight: "50" });
+    fillRow(1, { isin: B, value: "0", weight: "50" });
+    user.type(screen.getByLabelText("Cash to invest (PLN)"), "1000");
+    const prices = screen.getAllByLabelText(/^Price per unit/);
+    user.type(prices[0] as Element, "100");
+    user.type(prices[1] as Element, "50");
+    user.type(screen.getByLabelText("Commission (% of the order)"), "0,39");
+    user.type(screen.getByLabelText("Minimum fee per order (PLN)"), "5");
+    user.click(button("Save changes"));
+    await screen.findByText("Portfolio saved.");
+
+    const [stored] = await listPortfolios();
+    expect(stored?.costs).toEqual({ commissionRate: "0.0039", commissionMinPln: "5" });
+    expect(stored?.positions.map((p) => p.price)).toEqual([
+      { value: "100", currency: "PLN" },
+      { value: "50", currency: "PLN" },
+    ]);
+
+    cleanup();
+    window.location.hash = "#/rebalance";
+    renderWithApp(<App />);
+    const table = await screen.findByRole("region", { name: "Whole-unit purchase plan" });
+    const cells = (isin: string) =>
+      within(within(table).getByText(isin).closest("tr") as HTMLElement)
+        .getAllByRole("cell")
+        .map((c) => c.textContent ?? "");
+    // 500 PLN each is the ideal; the minimum fee of 5 PLN per order leaves room for 5 + 9 units.
+    expect(cells(A)[1]).toBe("5");
+    expect(cells(B)[1]).toBe("9");
+    expect(screen.getByText(/Broker fees/)).toBeInTheDocument();
+  });
+
+  it("asks for an exchange rate when the price is not in PLN", async () => {
+    renderWithApp(<App />);
+    await screen.findByRole("heading", { name: "Welcome to Driftless" });
+    await createPortfolioThroughUi("Fx price");
+    user.click(button("Add instrument"));
+    fillRow(0, { isin: A, value: "100", weight: "100" });
+    user.type(screen.getByLabelText("Price currency"), "EUR");
+    user.type(screen.getByLabelText(/^Price per unit/), "118,32");
+    user.click(button("Save changes"));
+    // Shown on the field and again in the summary above the save bar.
+    expect(
+      (await screen.findAllByText(/enter a price above zero, and an exchange rate/i)).length,
+    ).toBeGreaterThan(0);
+    expect(await listPortfolios()).toHaveLength(1);
+    expect((await listPortfolios())[0]?.positions).toHaveLength(0);
+
+    user.type(
+      screen.getByLabelText(/^Price rate \(PLN per 1 EUR\)/, { selector: "input" }),
+      "4,25",
+    );
+    user.click(button("Save changes"));
+    await screen.findByText("Portfolio saved.");
+    expect((await listPortfolios())[0]?.positions[0]?.price).toEqual({
+      value: "118.32",
+      currency: "EUR",
+      rate: { mid: "4.25", effectiveDate: null, source: "manual" },
+    });
+  });
+
+  it("explains how to get a unit plan when no prices are stored", async () => {
+    await applyChanges({ put: [portfolio()] });
+    window.location.hash = "#/rebalance";
+    renderWithApp(<App />);
+    expect(await screen.findByText(/Add a price per unit to your instruments/)).toBeVisible();
+    expect(screen.queryByRole("region", { name: "Whole-unit purchase plan" })).toBeNull();
+  });
+
+  it("exports the whole-unit plan with the prices it used", async () => {
+    const downloads = captureDownloads();
+    window.location.hash = "#/rebalance";
+    renderWithApp(<App />, { demo: true });
+    await screen.findByRole("region", { name: "Whole-unit purchase plan" });
+    user.click(button("Export whole-unit plan (CSV)"));
+    const csv = await downloads.lastText();
+    expect(csv).toContain("isin,label,units,unit_price,price_currency,cost_pln,fee_pln");
+    expect(csv).toContain("IE00BKM4GZ66,IS3N,");
+    expect(downloads.names.at(-1)).toMatch(/^driftless-units-.*\.csv$/);
   });
 });

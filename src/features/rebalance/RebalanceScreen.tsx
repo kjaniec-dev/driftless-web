@@ -21,6 +21,7 @@ import { formatDate, formatPercent, formatPln, formatPp } from "@/lib/format";
 import { navigate } from "@/lib/router";
 import { toEnginePortfolio } from "@/storage/convert";
 import type { StoredPortfolio } from "@/storage/model";
+import { UnitPlanView } from "./UnitPlanView";
 
 type Result =
   | { kind: "plan"; plan: RebalancePlan }
@@ -214,6 +215,8 @@ function PlanView({ plan, portfolio }: { plan: RebalancePlan; portfolio: StoredP
         </Button>
         <p className="text-sm text-muted-foreground">{t.rebalance.planNote}</p>
       </div>
+
+      <UnitPlanView plan={plan} portfolio={portfolio} />
     </div>
   );
 }

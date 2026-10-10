@@ -6,17 +6,21 @@
  */
 import { isCanonicalDecimal } from "@/core/decimal";
 import {
+  type BrokerCosts,
   FX_CURRENCIES,
+  type FxRate,
   isFxCurrency,
   LIMITS,
   type StoredPortfolio,
   type StoredPosition,
+  type UnitPrice,
   type Valuation,
 } from "@/storage/model";
 import { isValidDate, validateStoredPortfolio } from "@/storage/validate";
 
 export const BACKUP_FORMAT = "driftless-web";
-export const SCHEMA_VERSION = 1;
+/** v2 added optional `price` per instrument and `costs` per portfolio; v1 files still import. */
+export const SCHEMA_VERSION = 2;
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 export interface BackupFile {
@@ -124,24 +128,77 @@ function parseValuation(raw: unknown, path: string): Valuation {
   return fail(`${path}/mode`, 'expected "manual" or "fx"');
 }
 
-function parsePosition(raw: unknown, path: string): StoredPosition {
-  const o = object(raw, path, ["isin", "label", "ticker", "targetWeight", "valuation"]);
+function parseRate(raw: unknown, path: string): FxRate {
+  const rate = object(raw, path, ["mid", "effectiveDate", "source"]);
+  const source = rate.source;
+  if (source !== "nbp" && source !== "manual") {
+    return fail(`${path}/source`, 'expected "nbp" or "manual"');
+  }
+  const date = rate.effectiveDate;
+  if (date !== null && !(typeof date === "string" && isValidDate(date))) {
+    return fail(`${path}/effectiveDate`, "expected YYYY-MM-DD or null");
+  }
+  return { mid: decimal(rate, "mid", path), effectiveDate: date, source };
+}
+
+function parsePrice(raw: unknown, path: string): UnitPrice {
+  const o = object(raw, path, ["value", "currency", "rate", "quotedOn"]);
+  const currency = o.currency;
+  if (currency !== "PLN" && !isFxCurrency(currency)) {
+    return fail(`${path}/currency`, `expected PLN or one of ${FX_CURRENCIES.join(", ")}`);
+  }
+  let quotedOn: string | undefined;
+  if ("quotedOn" in o) {
+    quotedOn = text(o, "quotedOn", path, 10);
+    if (!isValidDate(quotedOn)) fail(`${path}/quotedOn`, "expected YYYY-MM-DD");
+  }
+  return {
+    value: decimal(o, "value", path),
+    currency,
+    ...("rate" in o ? { rate: parseRate(o.rate, `${path}/rate`) } : {}),
+    ...(quotedOn === undefined ? {} : { quotedOn }),
+  };
+}
+
+function parseCosts(raw: unknown, path: string): BrokerCosts {
+  const o = object(raw, path, ["commissionRate", "commissionMinPln"]);
+  return {
+    commissionRate: decimal(o, "commissionRate", path),
+    commissionMinPln: decimal(o, "commissionMinPln", path),
+  };
+}
+
+function parsePosition(raw: unknown, path: string, version: number): StoredPosition {
+  const o = object(raw, path, [
+    "isin",
+    "label",
+    "ticker",
+    "targetWeight",
+    "valuation",
+    ...(version >= 2 ? ["price"] : []),
+  ]);
   return {
     isin: text(o, "isin", path, 12),
     ...("label" in o ? { label: text(o, "label", path) } : {}),
     ...("ticker" in o ? { ticker: text(o, "ticker", path) } : {}),
     targetWeight: decimal(o, "targetWeight", path),
     valuation: parseValuation(o.valuation, `${path}/valuation`),
+    ...("price" in o ? { price: parsePrice(o.price, `${path}/price`) } : {}),
   };
 }
 
-export function parseStoredPortfolio(raw: unknown, path: string): StoredPortfolio {
+export function parseStoredPortfolio(
+  raw: unknown,
+  path: string,
+  version: number = SCHEMA_VERSION,
+): StoredPortfolio {
   const o = object(raw, path, [
     "id",
     "name",
     "baseCurrency",
     "asOf",
     "cashPln",
+    ...(version >= 2 ? ["costs"] : []),
     "positions",
     "createdAt",
     "updatedAt",
@@ -161,7 +218,8 @@ export function parseStoredPortfolio(raw: unknown, path: string): StoredPortfoli
     baseCurrency: "PLN",
     ...("asOf" in o ? { asOf: text(o, "asOf", path, 10) } : {}),
     cashPln: decimal(o, "cashPln", path),
-    positions: rawPositions.map((p, i) => parsePosition(p, `${path}/positions/${i}`)),
+    ...("costs" in o ? { costs: parseCosts(o.costs, `${path}/costs`) } : {}),
+    positions: rawPositions.map((p, i) => parsePosition(p, `${path}/positions/${i}`, version)),
     createdAt: timestamp(o, "createdAt", path),
     updatedAt: timestamp(o, "updatedAt", path),
   };
@@ -191,7 +249,9 @@ export function parseBackupData(data: unknown): BackupFile {
   if (o.portfolios.length > LIMITS.portfolios) {
     return fail("/portfolios", `more than ${LIMITS.portfolios} portfolios`);
   }
-  const portfolios = o.portfolios.map((p, i) => parseStoredPortfolio(p, `/portfolios/${i}`));
+  const portfolios = o.portfolios.map((p, i) =>
+    parseStoredPortfolio(p, `/portfolios/${i}`, version),
+  );
 
   const ids = new Set<string>();
   for (const p of portfolios) {

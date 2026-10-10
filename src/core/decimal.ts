@@ -109,3 +109,17 @@ export function multiplyToGrosz(a: string, b: string): string {
   const digits = grosze.toString().padStart(3, "0");
   return `${digits.slice(0, -2)}.${digits.slice(-2)}`;
 }
+
+/** Exact whole grosze of a canonical decimal PLN string, rounded half up ("12.345" -> 1235). */
+export const decimalToGrosze = (canonical: string): number =>
+  Number(multiplyToGrosz(canonical, "1").replace(".", ""));
+
+/**
+ * A fraction as whole parts per million ("0.0039" -> 3900), or null when it has finer
+ * resolution than that (so the rate used in the plan is exactly the one that was typed).
+ */
+export function fractionToPpm(fraction: string): number | null {
+  const [, frac = ""] = fraction.split(".");
+  if (frac.length > 6) return null;
+  return Number(shiftDecimal(fraction, 6));
+}

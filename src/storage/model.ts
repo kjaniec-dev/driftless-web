@@ -10,6 +10,8 @@ export const LIMITS = {
   portfolios: 200,
   positions: 500,
   text: 100,
+  /** Largest commission rate accepted (10%): anything above is almost certainly a typo. */
+  commissionRate: 0.1,
 } as const;
 
 export interface FxRate {
@@ -29,6 +31,17 @@ export type Valuation =
       readonly rate: FxRate;
     };
 
+/** Price of one unit as the user typed it (never fetched): a quote, not a valuation. */
+export interface UnitPrice {
+  /** Price per unit in `currency`, canonical decimal string, greater than zero. */
+  readonly value: string;
+  readonly currency: "PLN" | FxCurrency;
+  /** PLN per unit of `currency`; present exactly when the currency is not PLN. */
+  readonly rate?: FxRate;
+  /** Date of the quote `YYYY-MM-DD`, so a stale one can be flagged. */
+  readonly quotedOn?: string;
+}
+
 export interface StoredPosition {
   readonly isin: string;
   readonly label?: string;
@@ -36,6 +49,15 @@ export interface StoredPosition {
   /** Fraction in [0, 1] as a decimal string, e.g. "0.30". "0" = held but not targeted. */
   readonly targetWeight: string;
   readonly valuation: Valuation;
+  readonly price?: UnitPrice;
+}
+
+/** Broker costs of one buy order. Both zero (or absent) means "no costs". */
+export interface BrokerCosts {
+  /** Fraction of the order value in [0, 0.1] with at most six decimals, e.g. "0.0039". */
+  readonly commissionRate: string;
+  /** Minimum fee per order in PLN, canonical decimal string. */
+  readonly commissionMinPln: string;
 }
 
 export interface StoredPortfolio {
@@ -46,6 +68,7 @@ export interface StoredPortfolio {
   readonly asOf?: string;
   /** Cash to invest, canonical decimal string. */
   readonly cashPln: string;
+  readonly costs?: BrokerCosts;
   readonly positions: readonly StoredPosition[];
   /** ISO timestamps. */
   readonly createdAt: string;

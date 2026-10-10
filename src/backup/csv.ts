@@ -1,4 +1,5 @@
-import type { RebalancePlan } from "@/core";
+import type { RebalancePlan, UnitPlan } from "@/core";
+import type { StoredPortfolio } from "@/storage/model";
 
 const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
 
@@ -43,4 +44,38 @@ export function planToCsv(plan: RebalancePlan): string {
     ].join(","),
   );
   return `﻿${[CSV_HEADER.join(","), ...rows].join("\r\n")}\r\n`;
+}
+
+export const UNIT_CSV_HEADER = [
+  "isin",
+  "label",
+  "units",
+  "unit_price",
+  "price_currency",
+  "cost_pln",
+  "fee_pln",
+  "amount_plan_pln",
+  "after_weight_pct",
+  "drift_after_pp",
+] as const;
+
+/** The whole-unit plan as CSV, with the prices it was computed from. Same format as `planToCsv`. */
+export function unitPlanToCsv(plan: UnitPlan, portfolio: StoredPortfolio): string {
+  const priceOf = new Map(portfolio.positions.map((p) => [p.isin, p.price]));
+  const rows = plan.orders.map((o) => {
+    const price = priceOf.get(o.isin);
+    return [
+      csvCell(o.isin),
+      csvCell(o.label ?? ""),
+      csvCell(String(o.units), false),
+      csvCell(price?.value ?? "", false),
+      csvCell(price?.currency ?? "", false),
+      csvCell(money(o.costPln), false),
+      csvCell(money(o.feePln), false),
+      csvCell(money(o.idealBuyPln), false),
+      csvCell(pct(o.afterWeight), false),
+      csvCell(o.driftAfterPp.toFixed(2), false),
+    ].join(",");
+  });
+  return `﻿${[UNIT_CSV_HEADER.join(","), ...rows].join("\r\n")}\r\n`;
 }

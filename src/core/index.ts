@@ -1,7 +1,9 @@
 export type { CliPortfolioJson, FxRates } from "./cli-format";
 export { parseCliPortfolio, toCliPortfolio } from "./cli-format";
 export {
+  decimalToGrosze,
   fractionToPercent,
+  fractionToPpm,
   isCanonicalDecimal,
   normalizeDecimal,
   parseDecimal,
@@ -19,6 +21,8 @@ export type {
   RebalancePlan,
   Target,
 } from "./types";
+export type { Commission, UnitCost, UnitOrder, UnitPlan, UnitWarning } from "./units";
+export { computeUnitPlan, HIGH_FEE_SHARE, NO_COMMISSION, unitCostFromPrice } from "./units";
 export {
   assertValidPortfolio,
   ISIN_PATTERN,

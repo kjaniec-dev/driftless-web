@@ -97,6 +97,27 @@ for (const scheme of SCHEMES) {
       await scan(page, "rebalance/invalid");
     });
 
+    test("editor: unit price in a foreign currency and broker costs", async ({ page }) => {
+      await seedPortfolio(page, "IKE");
+      await go(page, "/edit");
+      await page.getByLabel("Price currency").first().selectOption("EUR");
+      await page
+        .getByLabel(/^Price per unit/)
+        .first()
+        .fill("118,32");
+      await page.getByLabel("Commission (% of the order)").fill("0,39");
+      await expect(page.getByLabel(/^Price rate/).first()).toBeVisible();
+      await scan(page, "editor/prices");
+    });
+
+    test("rebalance: whole-unit plan with price warnings", async ({ page }) => {
+      await openStart(page);
+      await page.getByRole("button", { name: "Try the demo" }).click();
+      await go(page, "/rebalance");
+      await expect(page.getByRole("region", { name: "Whole-unit purchase plan" })).toBeVisible();
+      await scan(page, "rebalance/units");
+    });
+
     test("data & privacy: import preview and error", async ({ page }) => {
       await seedPortfolio(page, "IKE");
       await go(page, "/data");

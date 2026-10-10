@@ -58,6 +58,7 @@ export function describeStoredIssue(
     case "position_amount":
     case "position_weight":
     case "position_rate":
+    case "position_price":
     case "duplicate_isin":
       return format(t.issues[issue.code], { n: issue.index + 1 });
     default:

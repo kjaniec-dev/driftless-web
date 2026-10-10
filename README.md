@@ -12,8 +12,9 @@ money so your portfolio moves back toward its target weights, **by buying only**
 
 ## Status
 
-Version 0.1.0: phases 1 to 3 of the roadmap are done (the first public release). Phase 4 (licensed
-ETF quotes, shared caching, rate limiting, unit-based plans) is next and depends on a data licence.
+Phases 1 to 3 of the roadmap are done (version 0.1.0). Phase 4 adds a plan in whole units from prices
+you type in (version 0.2.0). Automatic ETF quotes (a shared cache, rate limits) still depend on a data
+licence and are not built: see [`docs/QUOTES.md`](docs/QUOTES.md).
 
 | Area | State |
 | --- | --- |
@@ -23,7 +24,8 @@ ETF quotes, shared caching, rate limiting, unit-based plans) is next and depends
 | Polish/English, light/dark, responsive | Done |
 | E2E (desktop + mobile), accessibility, privacy audit, CI | Done |
 | Manual assistive-technology testing, live NBP check, first deployment | Not done yet (see `docs/RELEASE.md`) |
-| Licensed ETF quotes, cache, rate limits, unit-based plans | Phase 4 |
+| Whole-unit plan from typed prices, with broker commission | Done (v0.2.0), golden-checked against an exhaustive search |
+| Automatic ETF quotes, shared cache, rate limits | Not built: needs a data licence (`docs/QUOTES.md`) |
 
 ## Stack
 
@@ -102,6 +104,24 @@ with the same remaining shortfall.
 native backup format, not here). Foreign-currency positions need exchange rates injected by the
 caller; the NBP client arrives in Phase 2.
 
+## The whole-unit plan
+
+`src/core/units.ts` turns the amount plan into a number of whole units per instrument at the prices
+the user typed in (a price per unit, its currency and a rate when it is not PLN, and the date it was
+read). It is a separate, discrete problem solved by search:
+
+    minimise  sum_i (ideal_i - cost_i(units_i))^2   subject to   sum_i cost_i + fee_i <= cash
+
+where `ideal_i` is what the amount plan would buy. All arithmetic is integer grosze; a unit's cost is
+the exact fraction price x rate and is **rounded up**, so a plan never needs more cash than it shows.
+The commission is a percentage of the order (parts per million, so the rate is exact) with a minimum
+per order; instruments that are not bought pay nothing. The search starts from rounding every order
+down, then repeats single-unit add / remove / swap moves and an exact re-solve of every pair until
+nothing improves (ties go to the earlier instrument, so results are deterministic). It matches an
+exhaustive search on every random two-instrument case in the tests and on all but 1 in 1500
+three-instrument cases (that one within 18% of a tiny error). With more than 40 instruments the pair
+stage is skipped. Spreads are not modelled, and instruments without a price are skipped with a warning.
+
 ## Data, storage and import/export
 
 - **Stored model.** Money and weights are canonical decimal strings (PRD section 8), converted to
@@ -110,7 +130,12 @@ caller; the NBP client arrives in Phase 2.
 - **Nothing invalid is ever stored.** Once a portfolio has instruments, weights must total 100%
   (within the CLI's 1e-4 tolerance) and ISINs must be unique. The editor keeps a draft and only
   writes on an explicit, valid save; storage re-validates anyway.
-- **Backup format** is `{ format: "driftless-web", schemaVersion, exportedAt, portfolios }`. Parsing is
+- **Prices and costs** are optional: `price` on an instrument (`value`, `currency`, `rate`, `quotedOn`)
+  and `costs` on a portfolio (`commissionRate` as a fraction with at most six decimals, and
+  `commissionMinPln`). They are web-only: the CLI format has no place for them, so the CLI export
+  leaves them out.
+- **Backup format** is `{ format: "driftless-web", schemaVersion, exportedAt, portfolios }` (schema
+  version 2; version 1 files still import, and may not contain prices or costs). Parsing is
   strict (unknown keys, wrong types, bad numbers, newer schema versions and files over 5 MB are
   rejected) and imports are applied in one transaction, so a bad file cannot corrupt existing data.
 - **Conflicts** are matched by portfolio id. *Merge* keeps whichever side was updated last (ties keep

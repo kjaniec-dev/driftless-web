@@ -31,7 +31,14 @@ export function EditScreen() {
 
 /** Everything except the React keys, so "dirty" ignores row identity. */
 const signature = (d: Draft) =>
-  JSON.stringify([d.name, d.asOf, d.cash, d.rows.map(({ key: _key, ...rest }) => rest)]);
+  JSON.stringify([
+    d.name,
+    d.asOf,
+    d.cash,
+    d.commissionPct,
+    d.commissionMin,
+    d.rows.map(({ key: _key, ...rest }) => rest),
+  ]);
 
 function Editor({ portfolio }: { portfolio: StoredPortfolio }) {
   const { t, lang, format } = useI18n();
@@ -121,7 +128,7 @@ function Editor({ portfolio }: { portfolio: StoredPortfolio }) {
   const weightSum = draftWeightSumPercent(draft);
   const remaining = 100 - weightSum;
   const balanced = Math.abs(remaining) <= 0.01;
-  const hasForeign = draft.rows.some((r) => r.mode === "fx");
+  const hasForeign = draftCurrencies(draft).length > 0;
   const duplicateOf = (index: number) => rowIssues(index).some((i) => i.code === "duplicate_isin");
 
   return (
@@ -184,6 +191,34 @@ function Editor({ portfolio }: { portfolio: StoredPortfolio }) {
             }
             onChange={(e) => patch({ cash: e.target.value })}
           />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardContent className="space-y-3 pt-6">
+          <h2 className="text-lg font-bold">{t.edit.costsTitle}</h2>
+          <p className="text-xs text-muted-foreground">{t.edit.costsHint}</p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field
+              label={t.edit.commissionPct}
+              inputMode="decimal"
+              autoComplete="off"
+              value={draft.commissionPct}
+              error={
+                globalIssues.some((i) => i.code === "invalid_commission")
+                  ? t.issues.invalid_commission
+                  : undefined
+              }
+              onChange={(e) => patch({ commissionPct: e.target.value })}
+            />
+            <Field
+              label={t.edit.commissionMin}
+              inputMode="decimal"
+              autoComplete="off"
+              value={draft.commissionMin}
+              onChange={(e) => patch({ commissionMin: e.target.value })}
+            />
+          </div>
         </CardContent>
       </Card>
 

@@ -28,7 +28,7 @@ test.describe("primary workflow", () => {
     expect(await readBuys(page)).toEqual({ SXR8: 0, EXUS: 0, IS3N: 200, EGLN: 300 });
     await expect(metric(page, "To spend")).toContainText("500.00");
     await expect(metric(page, "Left unspent")).toContainText("0.00");
-    await expect(page.getByText(/not an order for a number of units/i)).toBeVisible();
+    await expect(page.getByText(/turns it into a number of units/i)).toBeVisible();
   });
 
   test("the dashboard shows totals, allocation and drift", async ({ page }) => {
