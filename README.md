@@ -21,7 +21,7 @@ ETF quotes, shared caching, rate limiting, unit-based plans) is next and depends
 | Local portfolios (IndexedDB), editor, backup/import/export, CSV | Done |
 | NBP exchange rates (fetch + manual fallback) | Implemented; **not verified against the live API** |
 | Polish/English, light/dark, responsive | Done |
-| E2E (desktop + mobile), accessibility, privacy audit, CI, deploy workflow | Done |
+| E2E (desktop + mobile), accessibility, privacy audit, CI | Done |
 | Manual assistive-technology testing, live NBP check, first deployment | Not done yet (see `docs/RELEASE.md`) |
 | Licensed ETF quotes, cache, rate limits, unit-based plans | Phase 4 |
 
@@ -42,7 +42,7 @@ npm run lint         # biome
 npm run build        # outputs dist/ for Cloudflare
 npm run audit:dist   # privacy audit of the production build (run after build)
 npm run test:e2e     # Playwright: workflows, offline, accessibility, privacy (run after build)
-npx wrangler deploy  # deploy dist/ (needs a Cloudflare login); see docs/RELEASE.md
+# deployment: Cloudflare builds and deploys on push, see docs/RELEASE.md
 ```
 
 The first time, install a browser for the E2E tests with `npx playwright install chromium`. If you
@@ -126,8 +126,9 @@ caller; the NBP client arrives in Phase 2.
 ## Quality gates
 
 CI (`.github/workflows/ci.yml`) runs lint, types, unit tests, the dependency licence check, the build
-and the production privacy audit, then the Playwright suite. The **Deploy** workflow runs all of that
-first and deploys only on success.
+and the production privacy audit, then the Playwright suite. Deployment is Cloudflare's Git integration;
+because it does not wait for CI, `main` should be protected so that only passing pull requests can be
+merged (see `docs/RELEASE.md`).
 
 - **Privacy:** every E2E test fails on any request that is not a body-less GET to the app's own origin
   or a well-formed NBP lookup, and on any CSP violation or console error. Details and residual risks:
@@ -152,7 +153,10 @@ first and deploys only on success.
 - Storage is per browser profile; there is no sync (a deliberate privacy trade-off). Backups are not
   encrypted.
 - ISINs are validated by format only (as in the CLI), not by check digit.
-- The JavaScript bundle is about 570 kB (about 170 kB gzipped).
+- The JavaScript is about 575 kB (about 175 kB gzipped), in two files: the libraries (React, the UI kit,
+  Dexie; about 490 kB) and the app itself (about 90 kB). They are split so that after a release a
+  returning visitor re-downloads only the app file. Splitting the screens into lazily loaded chunks was
+  tried and measured: it saved only about 6% on first load, because the libraries dominate, so it was not kept.
 
 ## License
 

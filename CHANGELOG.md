@@ -21,6 +21,8 @@ First public release.
   import and export; CSV export of the purchase plan.
 - **Privacy:** no accounts, analytics, cookies or third-party requests; strict CSP and security
   headers; an in-app privacy policy; an error boundary that never reports anything.
+- **Cache-friendly build:** libraries and app code are separate files, so a release re-downloads only
+  about 29 kB (gzipped) for returning visitors.
 - **Polish and English** interface, light and dark themes, responsive layout.
 - **Quality gates:** unit tests, Playwright end-to-end tests (desktop and mobile) that double as a
   network/privacy audit, axe accessibility scans, keyboard tests, a production-build privacy audit,
