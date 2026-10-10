@@ -1,5 +1,19 @@
-import { Alert, Card, CardContent, DataTable, FormField, Input, MetricCard } from "@kjaniec-dev/ui";
+import {
+  Alert,
+  Button,
+  Card,
+  CardContent,
+  DataTable,
+  EmptyState,
+  MetricCard,
+} from "@kjaniec-dev/ui";
 import { useMemo, useState } from "react";
+import { useSession } from "@/app/session";
+import { planToCsv } from "@/backup/csv";
+import { dateStamp, downloadText } from "@/backup/files";
+import { DemoBanner } from "@/components/DemoBanner";
+import { Field } from "@/components/Field";
+import { NoPortfolio } from "@/components/NoPortfolio";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import {
   computePlan,
@@ -8,20 +22,22 @@ import {
   type RebalancePlan,
   type ValidationIssue,
 } from "@/core";
-import { demoPortfolio } from "@/features/demo";
+import { describeIssue, describeWarning } from "@/features/issues";
 import { useI18n } from "@/i18n";
-import { formatPercent, formatPln, formatPp } from "@/lib/format";
-import { describeIssue, describeWarning } from "./issues";
+import { formatDate, formatPercent, formatPln, formatPp } from "@/lib/format";
+import { navigate } from "@/lib/router";
+import { toEnginePortfolio } from "@/storage/convert";
+import type { StoredPortfolio } from "@/storage/model";
 
 type Result =
   | { kind: "plan"; plan: RebalancePlan }
   | { kind: "invalid"; issues: readonly ValidationIssue[] };
 
-function calculate(cashInput: string): Result | null {
-  const cash = parseDecimal(cashInput);
+function calculate(portfolio: StoredPortfolio, cashInput: string): Result | null {
+  const cash = parseDecimal(cashInput.trim() === "" ? "0" : cashInput);
   if (cash === null) return null;
   try {
-    return { kind: "plan", plan: computePlan({ ...demoPortfolio, cashPln: cash }) };
+    return { kind: "plan", plan: computePlan(toEnginePortfolio(portfolio, cash)) };
   } catch (error) {
     if (error instanceof PortfolioValidationError) return { kind: "invalid", issues: error.issues };
     throw error;
@@ -29,33 +45,55 @@ function calculate(cashInput: string): Result | null {
 }
 
 export function RebalanceScreen() {
+  const { active } = useSession();
+  if (!active) return <NoPortfolio />;
+  // Keyed so switching portfolios resets the cash amount to that portfolio's saved one.
+  return <Rebalance key={active.id} portfolio={active} />;
+}
+
+function Rebalance({ portfolio }: { portfolio: StoredPortfolio }) {
   const { t, lang, format } = useI18n();
-  const [cashInput, setCashInput] = useState(String(demoPortfolio.cashPln));
-  const result = useMemo(() => calculate(cashInput), [cashInput]);
+  const [cashInput, setCashInput] = useState(portfolio.cashPln);
+  const result = useMemo(() => calculate(portfolio, cashInput), [portfolio, cashInput]);
   const cashInvalid = result === null;
+  const savedCash = formatPln(Number(portfolio.cashPln), lang);
+  const differsFromSaved = parseDecimal(cashInput) !== Number(portfolio.cashPln);
+
+  if (portfolio.positions.length === 0) {
+    return (
+      <>
+        <ScreenHeader title={t.rebalance.title} description={t.rebalance.description} />
+        <DemoBanner />
+        <EmptyState
+          title={t.rebalance.emptyTitle}
+          description={t.rebalance.emptyBody}
+          action={<Button onClick={() => navigate("/edit")}>{t.portfolio.goEdit}</Button>}
+        />
+      </>
+    );
+  }
 
   return (
     <>
       <ScreenHeader title={t.rebalance.title} description={t.rebalance.description} />
-      <Alert variant="warning" className="mb-6">
-        {t.app.demoBanner}
-      </Alert>
+      <DemoBanner />
 
       <Card className="mb-6">
-        <CardContent className="max-w-sm pt-6">
-          <FormField
+        <CardContent className="max-w-sm space-y-2 pt-6">
+          <Field
             label={t.rebalance.cash}
             hint={t.rebalance.cashHint}
-            {...(cashInvalid ? { error: t.rebalance.cashInvalid } : {})}
-          >
-            <Input
-              inputMode="decimal"
-              autoComplete="off"
-              value={cashInput}
-              error={cashInvalid}
-              onChange={(e) => setCashInput(e.target.value)}
-            />
-          </FormField>
+            error={cashInvalid ? t.rebalance.cashInvalid : undefined}
+            inputMode="decimal"
+            autoComplete="off"
+            value={cashInput}
+            onChange={(e) => setCashInput(e.target.value)}
+          />
+          {differsFromSaved && (
+            <Button size="sm" variant="ghost" onClick={() => setCashInput(portfolio.cashPln)}>
+              {format(t.rebalance.resetCash, { amount: savedCash })}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -65,16 +103,26 @@ export function RebalanceScreen() {
         </Alert>
       )}
 
-      {result?.kind === "plan" && <PlanView plan={result.plan} />}
+      {result?.kind === "plan" && <PlanView plan={result.plan} portfolio={portfolio} />}
 
       <p className="mt-8 text-xs text-muted-foreground">{t.app.disclaimer}</p>
     </>
   );
 }
 
-function PlanView({ plan }: { plan: RebalancePlan }) {
+function PlanView({ plan, portfolio }: { plan: RebalancePlan; portfolio: StoredPortfolio }) {
   const { t, lang, format } = useI18n();
   const noPurchases = plan.cashDeployed === 0;
+
+  const rates = portfolio.positions.flatMap((p) =>
+    p.valuation.mode === "fx" ? [p.valuation] : [],
+  );
+  const distinctRates = [
+    ...new Map(rates.map((v) => [`${v.currency}|${v.rate.mid}|${v.rate.source}`, v])).values(),
+  ];
+
+  const exportCsv = () =>
+    downloadText(`driftless-plan-${dateStamp(new Date())}.csv`, "text/csv", planToCsv(plan));
 
   return (
     <div className="space-y-6">
@@ -104,7 +152,9 @@ function PlanView({ plan }: { plan: RebalancePlan }) {
             accessor: (o) => (
               <span className="flex flex-col">
                 <span className="font-semibold">{o.label ?? o.isin}</span>
-                <span className="font-mono text-xs text-muted-foreground">{o.isin}</span>
+                {o.label && (
+                  <span className="font-mono text-xs text-muted-foreground">{o.isin}</span>
+                )}
               </span>
             ),
           },
@@ -137,7 +187,36 @@ function PlanView({ plan }: { plan: RebalancePlan }) {
           },
         ]}
       />
-      <p className="text-sm text-muted-foreground">{t.rebalance.planNote}</p>
+
+      {distinctRates.length > 0 && (
+        <Alert variant="info" title={t.rebalance.fxTitle}>
+          <span className="block">
+            {distinctRates
+              .map((v) =>
+                format(t.rebalance.fxLine, {
+                  currency: v.currency,
+                  rate: v.rate.mid,
+                  source:
+                    v.rate.source === "nbp" && v.rate.effectiveDate
+                      ? format(t.rebalance.sourceNbp, {
+                          date: formatDate(v.rate.effectiveDate, lang),
+                        })
+                      : t.rebalance.sourceManual,
+                }),
+              )
+              .join("; ")}
+            {". "}
+            {t.edit.nbpNote}
+          </span>
+        </Alert>
+      )}
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="outline" onClick={exportCsv}>
+          {t.rebalance.exportCsv}
+        </Button>
+        <p className="text-sm text-muted-foreground">{t.rebalance.planNote}</p>
+      </div>
     </div>
   );
 }

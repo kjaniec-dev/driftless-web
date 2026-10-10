@@ -12,16 +12,18 @@ money so your portfolio moves back toward its target weights, **by buying only**
 
 ## Status
 
-Phase 1 of the roadmap (see the PRD): frontend foundation, UI Kit integration and the TypeScript
-calculation engine. The UI currently runs on **in-memory demo data**; persistence, the editor,
-import/export and NBP rates are Phase 2.
+Phases 1 and 2 of the roadmap (see the PRD) are done. Phase 3 (E2E and accessibility suites,
+privacy review, release) and Phase 4 (licensed ETF quotes) are next.
 
 | Area | State |
 | --- | --- |
 | Buy-only engine, validation, CLI `portfolio.json` adapter | Done, golden-tested against the Python CLI |
-| App shell, PL/EN, light/dark, Start / Portfolio / Rebalance / Data screens | Done (demo data) |
-| Instrument editor, IndexedDB (Dexie), backup import/export, NBP FX | Phase 2 |
-| E2E + accessibility test suite, privacy review, release | Phase 3 |
+| App shell, PL/EN, light/dark | Done |
+| Multiple portfolios (create, rename, duplicate, delete) in IndexedDB (Dexie) | Done |
+| Instrument editor with live validation and explicit save | Done |
+| Backup export/import (versioned JSON, merge / keep both / replace), CLI import/export, CSV plan export | Done |
+| NBP exchange rates (fetch + manual fallback, rate and publication date stored) | Implemented, **not verified against the live API** (see limitations) |
+| Browser E2E + automated accessibility suite, privacy review, release | Phase 3 |
 | Licensed ETF quotes, cache, rate limits, unit-based plans | Phase 4 |
 
 ## Stack
@@ -48,6 +50,10 @@ Requires Node 22+.
 
 ```
 src/core/       Pure domain logic: engine, validation, CLI-format adapter. No React, no I/O.
+src/storage/    Persisted model, validation, Dexie repository, editor-draft conversion.
+src/backup/     Backup format, import planning, CLI/CSV conversion, file helpers.
+src/market/     NBP client (public data only; no portfolio data is ever sent).
+src/app/        Session context: the active portfolio (stored or in-memory demo).
 src/features/   One folder per screen.
 src/i18n/       Typed PL/EN dictionaries (PL must match EN's shape; enforced by tsc + tests).
 src/lib/        Router, theme, formatting, preference storage.
@@ -90,13 +96,44 @@ with the same remaining shortfall.
 native backup format, not here). Foreign-currency positions need exchange rates injected by the
 caller; the NBP client arrives in Phase 2.
 
+## Data, storage and import/export
+
+- **Stored model.** Money and weights are canonical decimal strings (PRD section 8), converted to
+  numbers only at the calculation boundary. Foreign-currency values are converted exactly (BigInt,
+  rounded half-up to the grosz), so 100 EUR at 4.256 is 425.60, never 425.59999999999997.
+- **Nothing invalid is ever stored.** Once a portfolio has instruments, weights must total 100%
+  (within the CLI's 1e-4 tolerance) and ISINs must be unique. The editor keeps a draft and only
+  writes on an explicit, valid save; storage re-validates anyway.
+- **Backup format** is `{ format: "driftless-web", schemaVersion, exportedAt, portfolios }`. Parsing is
+  strict (unknown keys, wrong types, bad numbers, newer schema versions and files over 5 MB are
+  rejected) and imports are applied in one transaction, so a bad file cannot corrupt existing data.
+- **Conflicts** are matched by portfolio id. *Merge* keeps whichever side was updated last (ties keep
+  local), *Keep both* imports copies under new ids and names, *Replace* overwrites matches and asks
+  for confirmation first. The preview shows the outcome for every portfolio before anything changes.
+- **CLI files** are detected automatically. Import creates a new portfolio; export writes exactly the
+  CLI schema (positions as `value_pln`) and is only offered when the portfolio has targets.
+- **CSV** export is a result artefact (UTF-8 with BOM, `.` decimals). Text cells are neutralised
+  against spreadsheet formula injection.
+- **Demo data** lives in memory and is only written to storage if the user chooses
+  "Save as my portfolio".
+
 ## Known limitations
 
-- Demo data only; nothing is persisted yet.
-- `DashboardShell` from the UI kit hard-codes the English `aria-label` "Open navigation" on the
-  mobile menu button; this needs a prop upstream in `ui-kit`.
+- **NBP is untested against the live API.** `api.nbp.pl` was blocked by the network policy of the
+  development sandbox, so the client was built to NBP's documented table-A response and tested with
+  mocked responses plus a real-browser check of the failure path. Whether the live endpoint works from
+  a browser (CORS) still has to be confirmed after deployment; if it does not, the planned fallback is
+  a tiny public Worker proxy. The editor always allows entering a rate by hand.
+- The UI kit's `Modal` stays mounted when closed (hidden with CSS only), which leaves its controls
+  focusable. Dialogs here are mounted only while open; this should be fixed upstream in `ui-kit`.
+- `DashboardShell` hard-codes the English `aria-label` "Open navigation" on the mobile menu button.
+- No service worker yet: the app works offline once loaded, but a reload while offline needs the PWA
+  work planned for later.
+- If two tabs edit the same portfolio, the editor warns and offers to reload, but the last save wins.
+- Storage is per browser profile; there is no sync (a deliberate privacy trade-off).
 - ISINs are validated by format only (as in the CLI), not by check digit.
-- Tables scroll horizontally on narrow screens; card layouts for mobile are planned with the editor.
+- The JavaScript bundle is about 570 kB (about 170 kB gzipped); route-level code splitting is a
+  possible follow-up.
 - The CI workflow is untested until it first runs on GitHub.
 
 ## License

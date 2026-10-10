@@ -29,3 +29,24 @@ export function formatPp(pp: number, lang: Lang): string {
   }).format(pp);
   return `${body} pp`;
 }
+
+/** ISO timestamp or `YYYY-MM-DD` -> a short local date. */
+export function formatDate(iso: string, lang: Lang): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : new Intl.DateTimeFormat(locale(lang), { dateStyle: "medium" }).format(d);
+}
+
+/** Bytes -> "12.3 kB". */
+export function formatBytes(bytes: number, lang: Lang): string {
+  const units = ["B", "kB", "MB", "GB"];
+  let value = bytes;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i++;
+  }
+  const digits = i === 0 ? 0 : 1;
+  return `${new Intl.NumberFormat(locale(lang), { maximumFractionDigits: digits }).format(value)} ${units[i]}`;
+}
