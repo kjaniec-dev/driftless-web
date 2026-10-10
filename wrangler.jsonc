@@ -5,5 +5,8 @@
   // Static assets only: portfolio maths and storage never touch the server.
   "assets": {
     "not_found_handling": "single-page-application"
-  }
+  },
+  // Required by `wrangler preview`, which Cloudflare Workers Builds runs for non-production
+  // branches. An empty block is enough; assets and compatibility settings stay at the top level.
+  "previews": {}
 }

@@ -21,6 +21,18 @@ or secret in the build.
    checks) and deploys only if all of it passes. It can also be started manually.
 3. Local alternative: `npm run build && npx wrangler deploy` (after `wrangler login`).
 
+## Two ways to deploy: pick one
+
+- **GitHub Actions (this repo's `deploy.yml`)**: runs the full CI first and deploys only if it passes.
+- **Cloudflare Workers Builds (Git integration in the dashboard)**: Cloudflare builds and deploys on
+  every push by itself. It does **not** wait for the GitHub CI, so tests and the privacy audit are not
+  a gate. If you use it, set its build command to `npm run build` and deploy command to
+  `npx wrangler deploy`; branch builds run `npx wrangler preview`, which needs the empty `previews`
+  block that `wrangler.jsonc` contains (without it the build fails with "missing a `previews` block").
+
+Using both at once deploys twice. The build log line "Some chunks are larger than 500 kB" is a
+warning about the bundle size, not an error.
+
 ## After the first deploy (checklist: not automatable from CI)
 
 - [ ] **Headers on the live site.** `curl -sI https://<your-domain>/` shows the
