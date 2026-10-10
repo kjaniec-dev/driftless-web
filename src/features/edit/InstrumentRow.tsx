@@ -1,4 +1,5 @@
-import { Button, Card, CardContent, SelectField } from "@kjaniec-dev/ui";
+import { Card, CardContent, SelectField } from "@kjaniec-dev/ui";
+import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
 import { multiplyToGrosz, normalizeDecimal } from "@/core/decimal";
 import { useI18n } from "@/i18n";
@@ -57,7 +58,7 @@ export function InstrumentRow({
           <h3 className="text-sm font-bold">{format(t.edit.rowTitle, { n: index + 1 })}</h3>
           <Button
             size="sm"
-            variant="ghost"
+            variant="destructive"
             onClick={onRemove}
             aria-label={`${t.edit.remove} ${index + 1}`}
           >

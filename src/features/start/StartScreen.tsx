@@ -1,7 +1,6 @@
 import {
   Alert,
   Badge,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -12,6 +11,7 @@ import {
 } from "@kjaniec-dev/ui";
 import { useState } from "react";
 import { useSession } from "@/app/session";
+import { Button } from "@/components/Button";
 import { NameDialog } from "@/components/NameDialog";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { pySum } from "@/core/float";
@@ -68,7 +68,7 @@ export function StartScreen() {
             <span>{t.start.firstUseBody}</span>
             <Button
               size="sm"
-              variant="outline"
+              variant="quiet"
               onClick={() => {
                 storage.set(DISMISSED_KEY, "1");
                 setDismissed(true);
@@ -90,11 +90,11 @@ export function StartScreen() {
             <Button disabled={!storageOk} onClick={() => setDialog({ kind: "new" })}>
               {t.start.newPortfolio}
             </Button>
-            <Button variant="outline" onClick={() => navigate("/data")}>
+            <Button variant="quiet" onClick={() => navigate("/data")}>
               {t.start.importJson}
             </Button>
             <Button
-              variant="outline"
+              variant="quiet"
               onClick={() => {
                 session.startDemo();
                 navigate("/portfolio");
@@ -154,14 +154,14 @@ export function StartScreen() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="quiet"
                         onClick={() => setDialog({ kind: "rename", portfolio: p })}
                       >
                         {t.common.rename}
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="quiet"
                         onClick={() =>
                           run(
                             () => session.duplicate(p.id, t.common.copySuffix),
@@ -173,7 +173,7 @@ export function StartScreen() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="ghost"
+                        variant="destructive"
                         onClick={() => setDialog({ kind: "delete", portfolio: p })}
                       >
                         {t.common.delete}

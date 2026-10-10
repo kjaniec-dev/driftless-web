@@ -1,6 +1,5 @@
 import {
   Badge,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -12,6 +11,7 @@ import {
 } from "@kjaniec-dev/ui";
 import { useMemo } from "react";
 import { useSession } from "@/app/session";
+import { Button } from "@/components/Button";
 import { DemoBanner } from "@/components/DemoBanner";
 import { NoPortfolio } from "@/components/NoPortfolio";
 import { ScreenHeader } from "@/components/ScreenHeader";

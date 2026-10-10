@@ -1,16 +1,9 @@
-import {
-  Alert,
-  Button,
-  Card,
-  CardContent,
-  DataTable,
-  EmptyState,
-  MetricCard,
-} from "@kjaniec-dev/ui";
+import { Alert, Card, CardContent, DataTable, EmptyState, MetricCard } from "@kjaniec-dev/ui";
 import { useMemo, useState } from "react";
 import { useSession } from "@/app/session";
 import { planToCsv } from "@/backup/csv";
 import { dateStamp, downloadText } from "@/backup/files";
+import { Button } from "@/components/Button";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Field } from "@/components/Field";
 import { NoPortfolio } from "@/components/NoPortfolio";
@@ -90,7 +83,7 @@ function Rebalance({ portfolio }: { portfolio: StoredPortfolio }) {
             onChange={(e) => setCashInput(e.target.value)}
           />
           {differsFromSaved && (
-            <Button size="sm" variant="ghost" onClick={() => setCashInput(portfolio.cashPln)}>
+            <Button size="sm" variant="quiet" onClick={() => setCashInput(portfolio.cashPln)}>
               {format(t.rebalance.resetCash, { amount: savedCash })}
             </Button>
           )}
@@ -212,7 +205,7 @@ function PlanView({ plan, portfolio }: { plan: RebalancePlan; portfolio: StoredP
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="outline" onClick={exportCsv}>
+        <Button variant="quiet" onClick={exportCsv}>
           {t.rebalance.exportCsv}
         </Button>
         <p className="text-sm text-muted-foreground">{t.rebalance.planNote}</p>

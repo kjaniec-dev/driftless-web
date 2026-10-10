@@ -1,4 +1,5 @@
-import { Button, EmptyState } from "@kjaniec-dev/ui";
+import { EmptyState } from "@kjaniec-dev/ui";
+import { Button } from "@/components/Button";
 import { useI18n } from "@/i18n";
 import { navigate } from "@/lib/router";
 

@@ -1,5 +1,6 @@
-import { Alert, Button } from "@kjaniec-dev/ui";
+import { Alert } from "@kjaniec-dev/ui";
 import { useSession } from "@/app/session";
+import { Button } from "@/components/Button";
 import { useI18n } from "@/i18n";
 import { navigate } from "@/lib/router";
 
@@ -24,7 +25,7 @@ export function DemoBanner() {
             {t.app.demoSave}
           </Button>
         )}
-        <Button size="sm" variant="outline" onClick={session.leaveDemo}>
+        <Button size="sm" variant="quiet" onClick={session.leaveDemo}>
           {t.app.demoLeave}
         </Button>
       </span>

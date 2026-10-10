@@ -1,6 +1,5 @@
 import {
   Alert,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -13,6 +12,7 @@ import { useSession } from "@/app/session";
 import { downloadBackup } from "@/backup/actions";
 import { CliExportError, storedToCliJson } from "@/backup/cli";
 import { downloadText } from "@/backup/files";
+import { Button } from "@/components/Button";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { useI18n } from "@/i18n";
 import { formatBytes } from "@/lib/format";
@@ -102,7 +102,7 @@ export function DataScreen() {
                   </p>
                 )}
                 {status.persisted === false && (
-                  <Button size="sm" variant="outline" onClick={persist}>
+                  <Button size="sm" variant="quiet" onClick={persist}>
                     {t.data.requestPersist}
                   </Button>
                 )}
@@ -128,7 +128,7 @@ export function DataScreen() {
                 {t.data.exportBackup}
               </Button>
               {active && (
-                <Button variant="outline" disabled={!canExportCli} onClick={exportCli}>
+                <Button variant="quiet" disabled={!canExportCli} onClick={exportCli}>
                   {format(t.data.exportCli, { name: active.name })}
                 </Button>
               )}

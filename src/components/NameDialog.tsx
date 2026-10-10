@@ -1,5 +1,6 @@
-import { Button, FormField, Input, Modal, ModalActions, ModalTitle } from "@kjaniec-dev/ui";
+import { FormField, Input, Modal, ModalActions, ModalTitle } from "@kjaniec-dev/ui";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/Button";
 import { useI18n } from "@/i18n";
 import { LIMITS } from "@/storage/model";
 
@@ -63,7 +64,7 @@ export function NameDialog({
           />
         </FormField>
         <ModalActions>
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="quiet" onClick={onClose}>
             {t.common.cancel}
           </Button>
           <Button type="submit" disabled={empty} loading={busy}>

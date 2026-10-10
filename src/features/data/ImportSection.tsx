@@ -1,6 +1,5 @@
 import {
   Alert,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -17,6 +16,7 @@ import { cliCurrenciesNeeded, cliToStored } from "@/backup/cli";
 import { FileTooLargeError, readFileText } from "@/backup/files";
 import { BackupError, type BackupFile, parseBackupData } from "@/backup/format";
 import { type ImportStrategy, planImport, planToChanges } from "@/backup/import-plan";
+import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
 import { CliFormatError, type FxRates, PortfolioValidationError, parseCliPortfolio } from "@/core";
 import { useI18n } from "@/i18n";

@@ -8,10 +8,14 @@ export function PortfolioSwitcher() {
   if (session.portfolios.length === 0 && !session.isDemo) return null;
 
   const value = session.isDemo ? "__demo__" : (session.active?.id ?? "");
+  const currentName = session.isDemo ? t.nav.demoOption : (session.active?.name ?? "");
   return (
     <Select
       aria-label={t.nav.switcher}
-      className="h-8 max-w-48 text-sm"
+      // Natural height (a fixed h-8 clipped the text); long names get an ellipsis, and the
+      // full name stays available as a tooltip.
+      className="max-w-64 truncate"
+      title={currentName}
       value={value}
       onChange={(e) => {
         if (e.target.value === "__demo__") session.startDemo();

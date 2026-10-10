@@ -1,7 +1,8 @@
-import { Button, DashboardShell, Segmented, SidebarNav, ToastProvider } from "@kjaniec-dev/ui";
+import { DashboardShell, Segmented, SidebarNav, ToastProvider } from "@kjaniec-dev/ui";
 import type { ReactNode } from "react";
 import { useSession } from "@/app/session";
 import { downloadBackup } from "@/backup/actions";
+import { Button } from "@/components/Button";
 import { PortfolioSwitcher } from "@/components/PortfolioSwitcher";
 import { DataScreen } from "@/features/data/DataScreen";
 import { EditScreen } from "@/features/edit/EditScreen";
@@ -54,7 +55,7 @@ export function App() {
         <p className="text-xs text-muted-foreground">{t.app.storageNotice}</p>
         <Button
           size="sm"
-          variant="outline"
+          variant="quiet"
           className="w-full"
           disabled={session.portfolios.length === 0}
           onClick={() => downloadBackup(session.portfolios)}
@@ -87,7 +88,7 @@ export function App() {
                 ]}
               />
               <Button
-                variant="ghost"
+                variant="quiet"
                 size="icon-sm"
                 aria-label={t.nav.theme}
                 aria-pressed={dark}

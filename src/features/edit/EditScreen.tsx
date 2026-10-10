@@ -1,6 +1,7 @@
-import { Alert, Badge, Button, Card, CardContent, EmptyState, useToast } from "@kjaniec-dev/ui";
+import { Alert, Badge, Card, CardContent, EmptyState, useToast } from "@kjaniec-dev/ui";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/app/session";
+import { Button } from "@/components/Button";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Field } from "@/components/Field";
 import { NoPortfolio } from "@/components/NoPortfolio";
@@ -135,7 +136,7 @@ function Editor({ portfolio }: { portfolio: StoredPortfolio }) {
             {session.active && (
               <Button
                 size="sm"
-                variant="outline"
+                variant="quiet"
                 onClick={() => session.active && reset(session.active)}
               >
                 {t.edit.reload}
@@ -200,7 +201,7 @@ function Editor({ portfolio }: { portfolio: StoredPortfolio }) {
             </Badge>
           )}
           {hasForeign && (
-            <Button size="sm" variant="outline" loading={fetching} onClick={fetchRates}>
+            <Button size="sm" variant="quiet" loading={fetching} onClick={fetchRates}>
               {fetching ? t.edit.fetching : t.edit.fetchRates}
             </Button>
           )}
@@ -245,11 +246,11 @@ function Editor({ portfolio }: { portfolio: StoredPortfolio }) {
         </Alert>
       )}
 
-      <div className="sticky bottom-0 -mx-6 mt-6 flex flex-wrap items-center gap-3 border-t border-border bg-surface px-6 py-3 md:-mx-8 md:px-8">
+      <div className="sticky bottom-4 z-10 mt-6 flex flex-wrap items-center gap-3 rounded-kj-lg border border-border bg-surface px-4 py-3 shadow-kj-lg">
         <Button onClick={save} disabled={!dirty} loading={saving}>
           {t.edit.save}
         </Button>
-        <Button variant="outline" disabled={!dirty} onClick={() => reset(baseline)}>
+        <Button variant="quiet" disabled={!dirty} onClick={() => reset(baseline)}>
           {t.edit.discard}
         </Button>
         {dirty && <span className="text-sm text-muted-foreground">{t.edit.unsaved}</span>}
