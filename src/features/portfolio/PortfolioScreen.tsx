@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
   DataTable,
   DonutChart,
   EmptyState,
@@ -12,6 +11,7 @@ import {
 import { useMemo } from "react";
 import { useSession } from "@/app/session";
 import { Button } from "@/components/Button";
+import { CardHeading } from "@/components/CardHeading";
 import { DemoBanner } from "@/components/DemoBanner";
 import { NoPortfolio } from "@/components/NoPortfolio";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -76,7 +76,7 @@ export function PortfolioScreen() {
         {plan.positionsPln > 0 && (
           <Card className="min-w-0">
             <CardHeader>
-              <CardTitle>{t.portfolio.allocation}</CardTitle>
+              <CardHeading>{t.portfolio.allocation}</CardHeading>
             </CardHeader>
             <CardContent>
               <DonutChart
@@ -96,6 +96,10 @@ export function PortfolioScreen() {
 
         <DataTable
           className="min-w-0"
+          // Horizontally scrollable on phones: must be reachable and named for keyboard users.
+          tabIndex={0}
+          role="region"
+          aria-label={t.portfolio.tableLabel}
           data={[...plan.orders]}
           getRowKey={(o) => o.isin}
           columns={[

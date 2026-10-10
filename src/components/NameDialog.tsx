@@ -1,6 +1,7 @@
 import { FormField, Input, Modal, ModalActions, ModalTitle } from "@kjaniec-dev/ui";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { FocusReturn } from "@/components/FocusReturn";
 import { useI18n } from "@/i18n";
 import { LIMITS } from "@/storage/model";
 
@@ -25,14 +26,23 @@ export function NameDialog({
   const { t } = useI18n();
   const [name, setName] = useState(initial);
   const [busy, setBusy] = useState(false);
+  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
-    if (open) setName(initial);
+    if (open) {
+      setName(initial);
+      setTouched(false);
+    }
   }, [open, initial]);
 
   const empty = name.trim() === "";
   const submit = async () => {
-    if (empty || busy) return;
+    // A disabled submit button would also break the dialog's focus trap, so validate here.
+    if (empty) {
+      setTouched(true);
+      return;
+    }
+    if (busy) return;
     setBusy(true);
     try {
       await onSubmit(name.trim());
@@ -46,32 +56,39 @@ export function NameDialog({
   if (!open) return null;
 
   return (
-    <Modal open onClose={onClose}>
-      <ModalTitle>{title}</ModalTitle>
-      <form
-        className="mt-4 space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void submit();
-        }}
-      >
-        <FormField label={t.start.nameLabel} {...(hint ? { hint } : {})}>
-          <Input
-            autoFocus
-            maxLength={LIMITS.text}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </FormField>
-        <ModalActions>
-          <Button type="button" variant="quiet" onClick={onClose}>
-            {t.common.cancel}
-          </Button>
-          <Button type="submit" disabled={empty} loading={busy}>
-            {confirmLabel}
-          </Button>
-        </ModalActions>
-      </form>
-    </Modal>
+    <>
+      <FocusReturn />
+      <Modal open onClose={onClose} showClose={false}>
+        <ModalTitle>{title}</ModalTitle>
+        <form
+          className="mt-4 space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+        >
+          <FormField
+            label={t.start.nameLabel}
+            {...(hint ? { hint } : {})}
+            {...(touched && empty ? { error: t.issues.name_required } : {})}
+          >
+            <Input
+              autoFocus
+              maxLength={LIMITS.text}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </FormField>
+          <ModalActions>
+            <Button type="button" variant="quiet" onClick={onClose}>
+              {t.common.cancel}
+            </Button>
+            <Button type="submit" loading={busy}>
+              {confirmLabel}
+            </Button>
+          </ModalActions>
+        </form>
+      </Modal>
+    </>
   );
 }

@@ -12,18 +12,17 @@ money so your portfolio moves back toward its target weights, **by buying only**
 
 ## Status
 
-Phases 1 and 2 of the roadmap (see the PRD) are done. Phase 3 (E2E and accessibility suites,
-privacy review, release) and Phase 4 (licensed ETF quotes) are next.
+Version 0.1.0: phases 1 to 3 of the roadmap are done (the first public release). Phase 4 (licensed
+ETF quotes, shared caching, rate limiting, unit-based plans) is next and depends on a data licence.
 
 | Area | State |
 | --- | --- |
 | Buy-only engine, validation, CLI `portfolio.json` adapter | Done, golden-tested against the Python CLI |
-| App shell, PL/EN, light/dark | Done |
-| Multiple portfolios (create, rename, duplicate, delete) in IndexedDB (Dexie) | Done |
-| Instrument editor with live validation and explicit save | Done |
-| Backup export/import (versioned JSON, merge / keep both / replace), CLI import/export, CSV plan export | Done |
-| NBP exchange rates (fetch + manual fallback, rate and publication date stored) | Implemented, **not verified against the live API** (see limitations) |
-| Browser E2E + automated accessibility suite, privacy review, release | Phase 3 |
+| Local portfolios (IndexedDB), editor, backup/import/export, CSV | Done |
+| NBP exchange rates (fetch + manual fallback) | Implemented; **not verified against the live API** |
+| Polish/English, light/dark, responsive | Done |
+| E2E (desktop + mobile), accessibility, privacy audit, CI, deploy workflow | Done |
+| Manual assistive-technology testing, live NBP check, first deployment | Not done yet (see `docs/RELEASE.md`) |
 | Licensed ETF quotes, cache, rate limits, unit-based plans | Phase 4 |
 
 ## Stack
@@ -36,13 +35,18 @@ Cloudflare Workers (static assets) · Vitest · Biome.
 
 ```bash
 npm install
-npm run dev        # Vite dev server
-npm test           # unit + golden parity + UI tests
-npm run typecheck  # tsc -b (TypeScript 7)
-npm run lint       # biome
-npm run build      # outputs dist/ for Cloudflare
-npx wrangler deploy  # deploy dist/ (needs a Cloudflare login)
+npm run dev          # Vite dev server
+npm test             # unit, golden parity and component tests (Vitest)
+npm run typecheck    # tsc -b (TypeScript 7)
+npm run lint         # biome
+npm run build        # outputs dist/ for Cloudflare
+npm run audit:dist   # privacy audit of the production build (run after build)
+npm run test:e2e     # Playwright: workflows, offline, accessibility, privacy (run after build)
+npx wrangler deploy  # deploy dist/ (needs a Cloudflare login); see docs/RELEASE.md
 ```
+
+The first time, install a browser for the E2E tests with `npx playwright install chromium`. If you
+already have a Chromium, point `PLAYWRIGHT_CHROMIUM_EXECUTABLE` at it instead.
 
 Requires Node 22+.
 
@@ -57,9 +61,11 @@ src/app/        Session context: the active portfolio (stored or in-memory demo)
 src/features/   One folder per screen.
 src/i18n/       Typed PL/EN dictionaries (PL must match EN's shape; enforced by tsc + tests).
 src/lib/        Router, theme, formatting, preference storage.
-public/_headers CSP and security headers served by Cloudflare.
+public/_headers CSP, security and cache headers served by Cloudflare.
 tests/golden/   Reference cases generated from the Python CLI.
-scripts/        generate-golden.py
+tests/e2e/      Playwright suites; every test also audits network traffic for privacy.
+scripts/        generate-golden.py, audit-dist.mjs, serve-dist.mjs, third-party-notices.mjs
+docs/           PRIVACY-REVIEW.md, ACCESSIBILITY.md, RELEASE.md
 ```
 
 ## The calculation engine
@@ -117,24 +123,36 @@ caller; the NBP client arrives in Phase 2.
 - **Demo data** lives in memory and is only written to storage if the user chooses
   "Save as my portfolio".
 
+## Quality gates
+
+CI (`.github/workflows/ci.yml`) runs lint, types, unit tests, the dependency licence check, the build
+and the production privacy audit, then the Playwright suite. The **Deploy** workflow runs all of that
+first and deploys only on success.
+
+- **Privacy:** every E2E test fails on any request that is not a body-less GET to the app's own origin
+  or a well-formed NBP lookup, and on any CSP violation or console error. Details and residual risks:
+  [`docs/PRIVACY-REVIEW.md`](docs/PRIVACY-REVIEW.md).
+- **Accessibility:** axe scans of every screen in light/dark and desktop/mobile, keyboard-only flows,
+  reflow at 320 px. What is and is not covered: [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md).
+- **Releasing:** [`docs/RELEASE.md`](docs/RELEASE.md), including the post-deploy checklist.
+
 ## Known limitations
 
-- **NBP is untested against the live API.** `api.nbp.pl` was blocked by the network policy of the
-  development sandbox, so the client was built to NBP's documented table-A response and tested with
-  mocked responses plus a real-browser check of the failure path. Whether the live endpoint works from
-  a browser (CORS) still has to be confirmed after deployment; if it does not, the planned fallback is
-  a tiny public Worker proxy. The editor always allows entering a rate by hand.
-- The UI kit's `Modal` stays mounted when closed (hidden with CSS only), which leaves its controls
-  focusable. Dialogs here are mounted only while open; this should be fixed upstream in `ui-kit`.
-- `DashboardShell` hard-codes the English `aria-label` "Open navigation" on the mobile menu button.
-- No service worker yet: the app works offline once loaded, but a reload while offline needs the PWA
-  work planned for later.
+- **NBP is untested against the live API.** `api.nbp.pl` was not reachable from the development
+  environment, so the client follows NBP's documented format and is tested with fabricated responses.
+  Whether the endpoint works from a browser (CORS) must be confirmed after deploying; if it does not,
+  the app falls back to manual rates and a small proxy Worker would be the fix.
+- No assistive-technology testing by hand has been done, and the suites run on Chromium only.
+- The UI kit has several accessibility defects that are worked around here (listed in
+  `docs/ACCESSIBILITY.md`); the Polish interface still has an English "Open navigation" label on the
+  mobile menu button.
+- No service worker: the loaded app works offline, but reloading the page offline needs the PWA work
+  planned for a later release.
 - If two tabs edit the same portfolio, the editor warns and offers to reload, but the last save wins.
-- Storage is per browser profile; there is no sync (a deliberate privacy trade-off).
+- Storage is per browser profile; there is no sync (a deliberate privacy trade-off). Backups are not
+  encrypted.
 - ISINs are validated by format only (as in the CLI), not by check digit.
-- The JavaScript bundle is about 570 kB (about 170 kB gzipped); route-level code splitting is a
-  possible follow-up.
-- The CI workflow is untested until it first runs on GitHub.
+- The JavaScript bundle is about 570 kB (about 170 kB gzipped).
 
 ## License
 

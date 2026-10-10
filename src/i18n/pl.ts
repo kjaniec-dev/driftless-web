@@ -25,6 +25,8 @@ export const pl: Dictionary = {
     openGroup: "Przestrzeń robocza",
     language: "Język",
     theme: "Przełącz tryb ciemny",
+    privacy: "Polityka prywatności",
+    skip: "Przejdź do treści",
     switcher: "Aktywny portfel",
     demoOption: "Demo",
   },
@@ -47,6 +49,7 @@ export const pl: Dictionary = {
     firstUseTitle: "Zanim zaczniesz",
     firstUseBody:
       "Twoje portfele są zapisywane tylko w tej przeglądarce, na tym urządzeniu. Wyczyszczenie danych witryny lub zmiana przeglądarki je usuwa, dlatego regularnie eksportuj plik z kopią zapasową.",
+    readPolicy: "Przeczytaj politykę prywatności",
     firstUseDismiss: "Rozumiem",
     privacyTitle: "Local-first z założenia",
     privacyBody:
@@ -93,6 +96,7 @@ export const pl: Dictionary = {
     noInstrumentsBody:
       "Dodaj instrumenty, ich bieżące wartości i wagi docelowe, aby zobaczyć odchylenia.",
     goEdit: "Dodaj instrumenty",
+    tableLabel: "Instrumenty, wartości i odchylenia",
     goStart: "Wróć do startu",
   },
   edit: {
@@ -157,6 +161,7 @@ export const pl: Dictionary = {
     planNote: "To plan kwotowy w PLN, a nie zlecenie na określoną liczbę jednostek.",
     invalidPortfolio: "Portfel jest nieprawidłowy",
     noPurchases: "Brak sugerowanych zakupów: nic nie jest niedoważone albo brakuje gotówki.",
+    tableLabel: "Plan zakupów",
     exportCsv: "Eksportuj plan (CSV)",
     emptyTitle: "Nie ma jeszcze czego rebalansować",
     emptyBody: "Najpierw dodaj instrumenty z wagami docelowymi.",
@@ -242,6 +247,59 @@ export const pl: Dictionary = {
       "Każdy portfel na tym urządzeniu zostanie trwale usunięty. Tego nie da się cofnąć.",
     deletedAll: "Wszystkie dane usunięte.",
     noPortfolios: "Nie ma jeszcze czego eksportować.",
+  },
+  privacy: {
+    title: "Polityka prywatności",
+    updated: "Ostatnia aktualizacja: 10 października 2026",
+    intro:
+      "Driftless nie ma kont, analityki ani reklam. Twoje portfele zostają w Twojej przeglądarce, a osoby prowadzące tę stronę nie mogą ich zobaczyć.",
+    sections: [
+      {
+        heading: "Co zostaje na Twoim urządzeniu",
+        body: [
+          "Twoje portfele (nazwy, instrumenty i numery ISIN, kwoty, wagi docelowe, gotówka, daty wyceny i zapisane kursy walut) są przechowywane w IndexedDB Twojej przeglądarki. Preferencje (język, motyw, ostatnio otwarty portfel i informacja o zamknięciu komunikatu przy pierwszym uruchomieniu) są w localStorage.",
+          "Wszystkie obliczenia wykonują się w Twojej przeglądarce. Żadne z tych danych nie są wysyłane do nas ani do nikogo innego.",
+        ],
+      },
+      {
+        heading: "Co Twoja przeglądarka wymienia z siecią",
+        body: [
+          "Ładowanie aplikacji: przeglądarka pobiera pliki aplikacji od dostawcy hostingu (Cloudflare). Jak każda strona internetowa, hosting otrzymuje techniczne dane żądania, takie jak adres IP, czas, żądany plik i typ przeglądarki, i może przechowywać standardowe logi serwera. Te żądania nie zawierają danych portfela. Nie dodajemy analityki, reklam, ciasteczek śledzących ani zewnętrznych skryptów, czcionek czy obrazów.",
+          "Kursy walut, tylko na Twoje żądanie: gdy naciskasz „Pobierz kursy NBP” lub importujesz plik z wartościami w walutach obcych, przeglądarka pyta Narodowy Bank Polski (api.nbp.pl) o publiczny kurs waluty. Żądanie zawiera wyłącznie nazwę waluty. NBP widzi Twój adres IP i stosuje własne zasady.",
+        ],
+      },
+      {
+        heading: "Ciasteczka i raportowanie błędów",
+        body: [
+          "Aplikacja nie ustawia żadnych ciasteczek. Błędy nigdy nie są automatycznie nigdzie zgłaszane; jeśli coś pójdzie nie tak, szczegóły zostają w Twojej przeglądarce.",
+        ],
+      },
+      {
+        heading: "Kopie zapasowe i pliki",
+        body: [
+          "Pliki kopii zapasowych, które eksportujesz, zawierają Twoje portfele jako zwykły tekst (JSON). Każdy, kto ma plik, może go odczytać, więc przechowuj go w bezpiecznym miejscu. Eksport i import odbywają się w całości w Twojej przeglądarce.",
+        ],
+      },
+      {
+        heading: "Kontrola i usuwanie",
+        body: [
+          "Portfel możesz usunąć na ekranie startowym, a wszystko naraz w sekcji Dane i prywatność (albo czyszcząc dane tej witryny w przeglądarce). Ponieważ nie mamy żadnej kopii, usuniętych danych nie da się odzyskać, więc jeśli mogą Ci się przydać, najpierw wyeksportuj kopię zapasową.",
+        ],
+      },
+      {
+        heading: "Otwarty kod i pytania",
+        body: [
+          "Driftless jest otwartym oprogramowaniem na licencji MIT, więc możesz sprawdzić, co dokładnie robi: github.com/kjaniec-dev/driftless-web. Pytania o prywatność możesz zgłosić jako zgłoszenie (issue) w tym repozytorium.",
+          "Driftless to matematyczne narzędzie planistyczne, a nie porada inwestycyjna.",
+        ],
+      },
+    ],
+  },
+  crash: {
+    title: "Coś poszło nie tak",
+    body: "Twoje zapisane portfele nie ucierpiały i nic nie zostało nigdzie wysłane. Przeładuj stronę. Jeśli problem wraca, najpierw pobierz kopię zapasową.",
+    reload: "Przeładuj",
+    backup: "Pobierz kopię zapasową",
   },
   fileErrors: {
     too_large: "Plik jest większy niż 5 MB.",

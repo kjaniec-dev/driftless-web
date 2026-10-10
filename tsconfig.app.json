@@ -20,7 +20,10 @@
     "noEmit": true,
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src", "tests", "vitest.setup.ts"]
+  "include": ["src", "tests", "vitest.setup.ts"],
+  "exclude": ["tests/e2e"]
 }

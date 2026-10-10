@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
   ConfirmDialog,
   EmptyState,
   useToast,
@@ -12,12 +11,14 @@ import {
 import { useState } from "react";
 import { useSession } from "@/app/session";
 import { Button } from "@/components/Button";
+import { CardHeading } from "@/components/CardHeading";
+import { FocusReturn } from "@/components/FocusReturn";
 import { NameDialog } from "@/components/NameDialog";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { pySum } from "@/core/float";
 import { useI18n } from "@/i18n";
 import { formatDate, formatPln } from "@/lib/format";
-import { navigate } from "@/lib/router";
+import { href, navigate } from "@/lib/router";
 import { storage } from "@/lib/storage";
 import type { StoredPortfolio } from "@/storage/model";
 import { positionValue } from "@/storage/validate";
@@ -82,10 +83,18 @@ export function StartScreen() {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>{t.start.privacyTitle}</CardTitle>
+          <CardHeading>{t.start.privacyTitle}</CardHeading>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">{t.start.privacyBody}</p>
+          <p className="text-sm text-muted-foreground">
+            {t.start.privacyBody}{" "}
+            <a
+              href={href("/privacy")}
+              className="font-semibold text-foreground underline underline-offset-2"
+            >
+              {t.start.readPolicy}
+            </a>
+          </p>
           <div className="flex flex-wrap items-center gap-3">
             <Button disabled={!storageOk} onClick={() => setDialog({ kind: "new" })}>
               {t.start.newPortfolio}
@@ -217,16 +226,19 @@ export function StartScreen() {
         }
       />
       {dialog?.kind === "delete" && (
-        <ConfirmDialog
-          open
-          onClose={() => setDialog(null)}
-          title={t.start.deleteTitle}
-          description={format(t.start.deleteBody, { name: dialog.portfolio.name })}
-          confirmLabel={t.common.delete}
-          cancelLabel={t.common.cancel}
-          tone="danger"
-          onConfirm={() => run(() => session.remove(dialog.portfolio.id), t.start.deleted)}
-        />
+        <>
+          <FocusReturn />
+          <ConfirmDialog
+            open
+            onClose={() => setDialog(null)}
+            title={t.start.deleteTitle}
+            description={format(t.start.deleteBody, { name: dialog.portfolio.name })}
+            confirmLabel={t.common.delete}
+            cancelLabel={t.common.cancel}
+            tone="danger"
+            onConfirm={() => run(() => session.remove(dialog.portfolio.id), t.start.deleted)}
+          />
+        </>
       )}
     </>
   );

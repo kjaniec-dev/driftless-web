@@ -23,6 +23,8 @@ export const en = {
     openGroup: "Workspace",
     language: "Language",
     theme: "Toggle dark mode",
+    privacy: "Privacy policy",
+    skip: "Skip to main content",
     switcher: "Active portfolio",
     demoOption: "Demo",
   },
@@ -45,6 +47,7 @@ export const en = {
     firstUseTitle: "Before you start",
     firstUseBody:
       "Your portfolios are saved only in this browser, on this device. Clearing site data or switching browsers removes them, so export a backup file regularly.",
+    readPolicy: "Read the privacy policy",
     firstUseDismiss: "Got it",
     privacyTitle: "Local-first by design",
     privacyBody:
@@ -90,6 +93,7 @@ export const en = {
     noInstrumentsTitle: "This portfolio has no instruments yet",
     noInstrumentsBody: "Add instruments, their current values and target weights to see the drift.",
     goEdit: "Add instruments",
+    tableLabel: "Instruments, values and drift",
     goStart: "Go to start",
   },
   edit: {
@@ -155,6 +159,7 @@ export const en = {
     planNote: "This is an amount plan in PLN, not an order for a number of units.",
     invalidPortfolio: "The portfolio is not valid",
     noPurchases: "No purchases suggested: nothing is underweight, or there is no cash.",
+    tableLabel: "Purchase plan",
     exportCsv: "Export plan (CSV)",
     emptyTitle: "Nothing to rebalance yet",
     emptyBody: "Add instruments with target weights first.",
@@ -239,6 +244,59 @@ export const en = {
       "Every portfolio on this device will be removed permanently. This cannot be undone.",
     deletedAll: "All data deleted.",
     noPortfolios: "There is nothing to export yet.",
+  },
+  privacy: {
+    title: "Privacy policy",
+    updated: "Last updated: 10 October 2026",
+    intro:
+      "Driftless has no accounts, no analytics and no advertising. Your portfolios stay in your browser, and the people who run this site cannot see them.",
+    sections: [
+      {
+        heading: "What stays on your device",
+        body: [
+          "Your portfolios (names, instruments and ISINs, amounts, target weights, cash, valuation dates and the exchange rates you saved) are stored in your browser's IndexedDB. Your preferences (language, theme, the portfolio you last opened, and whether you dismissed the first-use notice) are stored in localStorage.",
+          "All calculations run in your browser. None of this data is sent to us or to anyone else.",
+        ],
+      },
+      {
+        heading: "What your browser exchanges with the network",
+        body: [
+          "Loading the app: your browser downloads the app's files from the hosting provider (Cloudflare). As with any website, the host receives technical request data such as your IP address, the time, the file requested and your browser type, and may keep standard server logs. Those requests contain no portfolio data. We add no analytics, advertising, tracking cookies, or third-party scripts, fonts or images.",
+          'Exchange rates, only when you ask: when you press "Fetch NBP rates", or import a file with foreign-currency values, your browser asks the National Bank of Poland (api.nbp.pl) for the public rate of a currency. The request names only the currency. NBP receives your IP address and applies its own policies.',
+        ],
+      },
+      {
+        heading: "Cookies and error reporting",
+        body: [
+          "The app sets no cookies. Errors are never reported anywhere automatically; if something goes wrong, the details stay in your own browser.",
+        ],
+      },
+      {
+        heading: "Backups and files",
+        body: [
+          "Backup files you export contain your portfolios as plain text (JSON). Anyone who has the file can read it, so store it somewhere safe. Exporting and importing happen entirely in your browser.",
+        ],
+      },
+      {
+        heading: "Control and deletion",
+        body: [
+          "You can delete a portfolio from the start screen, or remove everything from Data & privacy (or by clearing this site's data in your browser). Because we hold no copy, deleted data cannot be recovered, so export a backup first if you may need it.",
+        ],
+      },
+      {
+        heading: "Open source and questions",
+        body: [
+          "Driftless is open source under the MIT licence, so you can check what it does: github.com/kjaniec-dev/driftless-web. Questions about privacy can be raised as an issue in that repository.",
+          "Driftless is a mathematical planning tool, not investment advice.",
+        ],
+      },
+    ],
+  },
+  crash: {
+    title: "Something went wrong",
+    body: "Your saved portfolios are not affected, and nothing was sent anywhere. Reload the page. If it keeps happening, download a backup first.",
+    reload: "Reload",
+    backup: "Download backup",
   },
   fileErrors: {
     too_large: "The file is larger than 5 MB.",

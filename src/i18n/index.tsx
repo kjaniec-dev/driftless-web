@@ -1,4 +1,12 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { storage } from "@/lib/storage";
 import { type Dictionary, en } from "./en";
 import { pl } from "./pl";
@@ -30,8 +38,12 @@ export function I18nProvider({ children, initial }: { children: ReactNode; initi
   const setLang = useCallback((next: Lang) => {
     setLangState(next);
     storage.set(STORAGE_KEY, next);
-    document.documentElement.lang = next;
   }, []);
+  // Keep <html lang> in step with the UI language (also on first load, not only on a switch),
+  // so screen readers pick the right voice.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
   const value = useMemo<I18n>(
     () => ({
       lang,

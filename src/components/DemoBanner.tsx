@@ -1,4 +1,4 @@
-import { Alert } from "@kjaniec-dev/ui";
+import { Alert, useToast } from "@kjaniec-dev/ui";
 import { useSession } from "@/app/session";
 import { Button } from "@/components/Button";
 import { useI18n } from "@/i18n";
@@ -8,6 +8,7 @@ import { navigate } from "@/lib/router";
 export function DemoBanner() {
   const { t } = useI18n();
   const session = useSession();
+  const { toast } = useToast();
   if (!session.isDemo) return null;
   const canSave = session.storage === "ok";
   return (
@@ -18,8 +19,15 @@ export function DemoBanner() {
           <Button
             size="sm"
             onClick={async () => {
-              await session.saveDemoAsPortfolio();
-              navigate("/portfolio");
+              try {
+                await session.saveDemoAsPortfolio();
+                // Saving is asynchronous; say when it is done, so nothing (a person closing the tab,
+                // a test reloading the page) acts on a half-finished write.
+                toast({ message: t.edit.saved, tone: "success" });
+                navigate("/portfolio");
+              } catch {
+                toast({ message: t.edit.saveFailed, tone: "danger" });
+              }
             }}
           >
             {t.app.demoSave}
