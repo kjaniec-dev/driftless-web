@@ -124,8 +124,25 @@ test.describe("primary workflow", () => {
 
     await page.getByRole("button", { name: "Try the demo" }).click();
     await page.getByRole("button", { name: "Save as my portfolio" }).click();
+    // Saving is asynchronous: wait for the confirmation before reloading, or the reload can cut
+    // the write short (this test failed intermittently on CI runners when it did not).
+    await expect(page.getByText("Portfolio saved.")).toBeVisible();
+    await expect(page.getByText(/Demo data\./)).toBeHidden();
+
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Demo" })).toBeVisible();
+    try {
+      await expect(page.getByRole("heading", { name: "Demo" })).toBeVisible();
+    } catch (error) {
+      // If this ever fails again, leave evidence in the CI log instead of a bare timeout.
+      const state = await page.evaluate(async () => ({
+        url: location.href,
+        text: document.body.innerText.slice(0, 400),
+        activePortfolio: localStorage.getItem("driftless.activePortfolio"),
+        databases: (await indexedDB.databases()).map((d) => `${d.name}@${d.version}`),
+      }));
+      console.log(`DEMO-RELOAD DIAGNOSTICS: ${JSON.stringify(state)}`);
+      throw error;
+    }
   });
 
   test("handles several portfolios independently", async ({ page }) => {
