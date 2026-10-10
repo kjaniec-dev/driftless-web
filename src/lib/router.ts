@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export const ROUTES = ["/", "/portfolio", "/edit", "/rebalance", "/data"] as const;
+export const ROUTES = ["/", "/portfolio", "/edit", "/rebalance", "/data", "/privacy"] as const;
 export type Route = (typeof ROUTES)[number];
 
 const subscribe = (cb: () => void) => {

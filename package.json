@@ -17,7 +17,11 @@
     "format": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "golden": "python3 -I scripts/generate-golden.py \"$DRIFTLESS_SRC\""
+    "golden": "python3 -I scripts/generate-golden.py \"$DRIFTLESS_SRC\"",
+    "test:e2e": "playwright test",
+    "audit:dist": "node scripts/audit-dist.mjs",
+    "licenses:check": "license-checker-rseidelsohn --production --excludePrivatePackages --onlyAllow \"MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;BlueOak-1.0.0;CC0-1.0;Unlicense\"",
+    "licenses:notices": "node scripts/third-party-notices.mjs"
   },
   "dependencies": {
     "@kjaniec-dev/design": "^1.0.0",
@@ -28,8 +32,10 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.15",
     "@cloudflare/vite-plugin": "^1.63.1",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -39,6 +45,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
+    "license-checker-rseidelsohn": "^4.4.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",

@@ -137,6 +137,10 @@ function PlanView({ plan, portfolio }: { plan: RebalancePlan; portfolio: StoredP
       {noPurchases && <Alert variant="info">{t.rebalance.noPurchases}</Alert>}
 
       <DataTable
+        // Horizontally scrollable on phones: must be reachable and named for keyboard users.
+        tabIndex={0}
+        role="region"
+        aria-label={t.rebalance.tableLabel}
         data={[...plan.orders]}
         getRowKey={(o) => o.isin}
         columns={[

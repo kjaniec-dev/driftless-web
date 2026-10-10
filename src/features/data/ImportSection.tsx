@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
   ConfirmDialog,
   DataTable,
   Dropzone,
@@ -17,7 +16,9 @@ import { FileTooLargeError, readFileText } from "@/backup/files";
 import { BackupError, type BackupFile, parseBackupData } from "@/backup/format";
 import { type ImportStrategy, planImport, planToChanges } from "@/backup/import-plan";
 import { Button } from "@/components/Button";
+import { CardHeading } from "@/components/CardHeading";
 import { Field } from "@/components/Field";
+import { FocusReturn } from "@/components/FocusReturn";
 import { CliFormatError, type FxRates, PortfolioValidationError, parseCliPortfolio } from "@/core";
 import { useI18n } from "@/i18n";
 import { formatDate } from "@/lib/format";
@@ -157,10 +158,7 @@ export function ImportSection() {
         for (const c of loaded.currencies) {
           const rate = got[c];
           if (!rate) {
-            setProblem({
-              code: "cli_invalid",
-              path: format(t.data.cliNeedRates, { currencies: c }),
-            });
+            setProblem({ code: "rates_unavailable", path: loaded.currencies.join(", ") });
             return;
           }
           (rates as Record<string, number>)[c] = Number(rate.mid);
@@ -184,7 +182,7 @@ export function ImportSection() {
   return (
     <Card id="import">
       <CardHeader>
-        <CardTitle>{t.data.importTitle}</CardTitle>
+        <CardHeading>{t.data.importTitle}</CardHeading>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">{t.data.importBody}</p>
@@ -225,6 +223,9 @@ export function ImportSection() {
             </SelectField>
 
             <DataTable
+              tabIndex={0}
+              role="region"
+              aria-label={t.data.previewTitle}
               data={[...plan.items]}
               getRowKey={(i) => i.incoming.id}
               columns={[
@@ -276,19 +277,22 @@ export function ImportSection() {
       </CardContent>
 
       {confirming && (
-        <ConfirmDialog
-          open
-          onClose={() => setConfirming(false)}
-          title={t.data.confirmReplaceTitle}
-          description={format(t.data.confirmReplaceBody, {
-            count: plan?.items.filter((i) => i.outcome === "replace").length ?? 0,
-          })}
-          confirmLabel={t.data.confirmReplace}
-          cancelLabel={t.common.cancel}
-          tone="danger"
-          loading={busy}
-          onConfirm={() => void applyBackup()}
-        />
+        <>
+          <FocusReturn />
+          <ConfirmDialog
+            open
+            onClose={() => setConfirming(false)}
+            title={t.data.confirmReplaceTitle}
+            description={format(t.data.confirmReplaceBody, {
+              count: plan?.items.filter((i) => i.outcome === "replace").length ?? 0,
+            })}
+            confirmLabel={t.data.confirmReplace}
+            cancelLabel={t.common.cancel}
+            tone="danger"
+            loading={busy}
+            onConfirm={() => void applyBackup()}
+          />
+        </>
       )}
     </Card>
   );

@@ -1,18 +1,12 @@
-import {
-  Alert,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  ConfirmDialog,
-  useToast,
-} from "@kjaniec-dev/ui";
+import { Alert, Card, CardContent, CardHeader, ConfirmDialog, useToast } from "@kjaniec-dev/ui";
 import { useEffect, useState } from "react";
 import { useSession } from "@/app/session";
 import { downloadBackup } from "@/backup/actions";
 import { CliExportError, storedToCliJson } from "@/backup/cli";
 import { downloadText } from "@/backup/files";
 import { Button } from "@/components/Button";
+import { CardHeading } from "@/components/CardHeading";
+import { FocusReturn } from "@/components/FocusReturn";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { useI18n } from "@/i18n";
 import { formatBytes } from "@/lib/format";
@@ -69,7 +63,7 @@ export function DataScreen() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>{t.data.principlesTitle}</CardTitle>
+            <CardHeading>{t.data.principlesTitle}</CardHeading>
           </CardHeader>
           <CardContent>
             <ul className="list-disc space-y-2 pl-5 text-sm">
@@ -82,7 +76,7 @@ export function DataScreen() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t.data.storageTitle}</CardTitle>
+            <CardHeading>{t.data.storageTitle}</CardHeading>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert variant="warning">{t.data.storageBody}</Alert>
@@ -113,7 +107,7 @@ export function DataScreen() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t.data.backupTitle}</CardTitle>
+            <CardHeading>{t.data.backupTitle}</CardHeading>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">{t.data.backupBody}</p>
@@ -144,7 +138,7 @@ export function DataScreen() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>{t.data.dangerTitle}</CardTitle>
+            <CardHeading>{t.data.dangerTitle}</CardHeading>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">{t.data.dangerBody}</p>
@@ -160,20 +154,23 @@ export function DataScreen() {
       </div>
 
       {confirmDelete && (
-        <ConfirmDialog
-          open
-          onClose={() => setConfirmDelete(false)}
-          title={t.data.deleteAllTitle}
-          description={t.data.deleteAllBody}
-          confirmLabel={t.data.deleteAll}
-          cancelLabel={t.common.cancel}
-          tone="danger"
-          onConfirm={async () => {
-            await deleteAllData();
-            setConfirmDelete(false);
-            toast({ message: t.data.deletedAll, tone: "success" });
-          }}
-        />
+        <>
+          <FocusReturn />
+          <ConfirmDialog
+            open
+            onClose={() => setConfirmDelete(false)}
+            title={t.data.deleteAllTitle}
+            description={t.data.deleteAllBody}
+            confirmLabel={t.data.deleteAll}
+            cancelLabel={t.common.cancel}
+            tone="danger"
+            onConfirm={async () => {
+              await deleteAllData();
+              setConfirmDelete(false);
+              toast({ message: t.data.deletedAll, tone: "success" });
+            }}
+          />
+        </>
       )}
     </>
   );
