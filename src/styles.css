@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@import "@kjaniec-dev/design/tailwind.css";
+@import "@kjaniec-dev/ui/ui.css";
+@source "../node_modules/@kjaniec-dev/ui";
+
+@layer base {
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+}

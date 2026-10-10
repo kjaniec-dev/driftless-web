@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "driftless-web",
+  "compatibility_date": "2026-10-01",
+  // Static assets only: portfolio maths and storage never touch the server.
+  "assets": {
+    "not_found_handling": "single-page-application"
+  }
+}
