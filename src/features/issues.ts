@@ -2,6 +2,7 @@ import type { PlanWarning, ValidationIssue } from "@/core";
 import type { Lang } from "@/i18n";
 import type { Dictionary } from "@/i18n/en";
 import { formatPercent, formatPln } from "@/lib/format";
+import type { StoredIssue } from "@/storage/validate";
 
 type Format = (template: string, values: Record<string, string | number>) => string;
 
@@ -39,5 +40,27 @@ export function describeWarning(
       return format(t.rebalance.warnings.cashConstrained, {
         amount: formatPln(warning.cashPln, lang),
       });
+  }
+}
+
+/** Row-level issues carry a 0-based `index`; the UI numbers instruments from 1. */
+export function describeStoredIssue(
+  issue: StoredIssue,
+  t: Dictionary,
+  format: Format,
+  lang: Lang,
+): string {
+  switch (issue.code) {
+    case "weights_sum":
+      return format(t.issues.weights_sum, { sum: formatPercent(issue.sum, lang, 2) });
+    case "position_isin":
+    case "position_text":
+    case "position_amount":
+    case "position_weight":
+    case "position_rate":
+    case "duplicate_isin":
+      return format(t.issues[issue.code], { n: issue.index + 1 });
+    default:
+      return t.issues[issue.code];
   }
 }

@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { SessionProvider } from "./app/session";
 import { I18nProvider } from "./i18n";
 import "./styles.css";
 
@@ -10,7 +11,9 @@ if (!root) throw new Error("Missing #root element");
 createRoot(root).render(
   <StrictMode>
     <I18nProvider>
-      <App />
+      <SessionProvider>
+        <App />
+      </SessionProvider>
     </I18nProvider>
   </StrictMode>,
 );
