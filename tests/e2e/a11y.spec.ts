@@ -9,8 +9,12 @@ const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-prac
 async function scan(page: Page, label: string): Promise<void> {
   // axe reads computed colours, which are in-between values while a CSS transition runs (more
   // often under CI load). Resting colours are what users see, so measure those.
+  // A sticky bar (the editor's save bar) covers whatever happens to sit behind it at the current
+  // scroll position, which is not a property of the page: lay it out in flow for the scan, and
+  // `scroll-padding-bottom` (see styles.css) keeps focused fields clear of it in real use.
   await page.addStyleTag({
-    content: "*,*::before,*::after{transition:none!important;animation:none!important}",
+    content:
+      "*,*::before,*::after{transition:none!important;animation:none!important}.sticky{position:static!important}",
   });
   await page.waitForTimeout(100);
   const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
