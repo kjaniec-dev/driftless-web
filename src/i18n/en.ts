@@ -6,7 +6,7 @@ export const en = {
     demoSave: "Save as my portfolio",
     demoLeave: "Leave demo",
     disclaimer:
-      "Driftless is a mathematical planning tool, not investment advice. Amounts are a PLN plan, not guaranteed unit orders; broker settlement may differ.",
+      "Driftless is a mathematical planning tool, not investment advice. Amounts are a PLN plan; unit counts use prices you typed, not live quotes, and broker execution may differ.",
     storageNotice: "Data is stored only on this device. Export a backup copy.",
     exportBackup: "Export backup",
     storageUnavailableTitle: "Browser storage is unavailable",
@@ -141,6 +141,19 @@ export const en = {
     changedElsewhere:
       "This portfolio was changed in another tab or window. Saving here will overwrite that change.",
     reload: "Load the saved version",
+    unitPriceTitle: "Unit price (for the whole-unit plan)",
+    unitPriceHint:
+      "Optional. Type the price you see at your broker; Driftless never fetches share prices.",
+    unitPrice: "Price per unit ({currency})",
+    unitPriceCurrency: "Price currency",
+    unitPriceRate: "Price rate (PLN per 1 {currency})",
+    unitPriceDate: "Price read on",
+    unitPriceDateHint: "Used to warn when a price is old.",
+    costsTitle: "Broker costs",
+    costsHint:
+      "Used only by the whole-unit plan; leave blank for none. Spreads are not modelled, so keep a little cash back.",
+    commissionPct: "Commission (% of the order)",
+    commissionMin: "Minimum fee per order (PLN)",
     errorsTitle: "Please check the highlighted fields",
   },
   rebalance: {
@@ -156,7 +169,8 @@ export const en = {
     buy: "Buy (PLN)",
     after: "After",
     driftAfter: "Drift after",
-    planNote: "This is an amount plan in PLN, not an order for a number of units.",
+    planNote:
+      "This is an amount plan in PLN. The whole-unit plan below turns it into a number of units.",
     invalidPortfolio: "The portfolio is not valid",
     noPurchases: "No purchases suggested: nothing is underweight, or there is no cash.",
     tableLabel: "Purchase plan",
@@ -167,6 +181,31 @@ export const en = {
     fxLine: "{currency}: {rate} PLN, {source}",
     sourceNbp: "NBP, published {date}",
     sourceManual: "manual rate",
+    unitsTitle: "Whole-unit plan",
+    unitsIntro:
+      "How many whole units to buy at the prices you entered, within the cash left after broker costs. Costs are rounded up, so the plan never needs more than shown.",
+    unitsEmpty:
+      "Add a price per unit to your instruments (Instruments & targets) to see a plan in whole units.",
+    exportUnitsCsv: "Export whole-unit plan (CSV)",
+    unitsTableLabel: "Whole-unit purchase plan",
+    unitsSpent: "Units cost",
+    unitsFees: "Broker fees",
+    unitsLeftover: "Left unspent",
+    colUnits: "Units",
+    colPrice: "Price",
+    colCost: "Cost",
+    colFee: "Fee",
+    colAmountPlan: "Amount plan",
+    noPriceCell: "no price",
+    unitsNote:
+      "Prices are the ones you typed, not live quotes. Execution prices, spreads and exchange rates at your broker will differ: check before you place orders.",
+    priceStale: "{name}: the price is from {date}, {days} days ago. Check it before ordering.",
+    priceUndated: "{name}: the price has no date. Check it before ordering.",
+    unitWarnings: {
+      noPrice:
+        "{name} has no unit price, so it is skipped and its share of the cash stays unspent.",
+      highFee: "{name}: broker fees are {share} of this order.",
+    },
     warnings: {
       notInTarget: "Position {isin} is not in the target allocation. It is kept but never traded.",
       cashConstrained:
@@ -200,7 +239,7 @@ export const en = {
     exportBackup: "Export full backup (JSON)",
     exportCli: "Export {name} as CLI portfolio.json",
     exportCliHint:
-      "Compatible with the Driftless command-line tool. It holds one portfolio and no web-only data.",
+      "Compatible with the Driftless command-line tool. It holds one portfolio; unit prices and broker costs are web-only and are left out.",
     exportCliNoTargets: "Add target weights to export this portfolio in the CLI format.",
     exportedBackup: "Backup downloaded.",
     importTitle: "Import",
@@ -254,7 +293,7 @@ export const en = {
       {
         heading: "What stays on your device",
         body: [
-          "Your portfolios (names, instruments and ISINs, amounts, target weights, cash, valuation dates and the exchange rates you saved) are stored in your browser's IndexedDB. Your preferences (language, theme, the portfolio you last opened, and whether you dismissed the first-use notice) are stored in localStorage.",
+          "Your portfolios (names, instruments and ISINs, amounts, target weights, cash, valuation dates, the exchange rates you saved, and any unit prices and broker costs you typed in) are stored in your browser's IndexedDB. Your preferences (language, theme, the portfolio you last opened, and whether you dismissed the first-use notice) are stored in localStorage.",
           "All calculations run in your browser. None of this data is sent to us or to anyone else.",
         ],
       },
@@ -331,6 +370,10 @@ export const en = {
     position_amount: "Instrument {n}: the value must be a non-negative number.",
     position_weight: "Instrument {n}: the target must be between 0 and 100%.",
     position_rate: "Instrument {n}: enter an exchange rate above zero.",
+    position_price:
+      "Instrument {n}: enter a price above zero, and an exchange rate when it is not in PLN.",
+    invalid_commission:
+      "Broker costs: the rate must be between 0% and 10% with at most four decimals, and the minimum a non-negative amount.",
     duplicate_isin: "Instrument {n}: this ISIN is already used above.",
   },
 };

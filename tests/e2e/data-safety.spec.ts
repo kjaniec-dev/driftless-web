@@ -43,7 +43,7 @@ test.describe("recovering and protecting data", () => {
 
     const parsed = JSON.parse(backup);
     expect(parsed.format).toBe("driftless-web");
-    expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.portfolios.map((p: { name: string }) => p.name).sort()).toEqual(["IKE", "IKZE"]);
 
     // The browser "forgets" everything (cleared site data / evicted storage).

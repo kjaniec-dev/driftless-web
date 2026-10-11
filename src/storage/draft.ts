@@ -1,10 +1,17 @@
-import { fractionToPercent, normalizeDecimal, percentToFraction } from "@/core/decimal";
+import {
+  fractionToPercent,
+  fractionToPpm,
+  normalizeDecimal,
+  percentToFraction,
+} from "@/core/decimal";
 import { pySum } from "@/core/float";
 import {
   FX_CURRENCIES,
   type FxCurrency,
+  LIMITS,
   type StoredPortfolio,
   type StoredPosition,
+  type UnitPrice,
   type Valuation,
 } from "./model";
 import { type StoredIssue, validateStoredPortfolio } from "./validate";
@@ -23,12 +30,23 @@ export interface DraftRow {
   rateSource: "nbp" | "manual";
   rateDate: string | null;
   weightPct: string;
+  /** Price per unit as typed; blank = no price (the unit plan skips the instrument). */
+  price: string;
+  priceCurrency: "PLN" | FxCurrency;
+  priceRate: string;
+  priceRateSource: "nbp" | "manual";
+  priceRateDate: string | null;
+  /** Date the price was read, `YYYY-MM-DD` or blank. */
+  priceDate: string;
 }
 
 export interface Draft {
   name: string;
   asOf: string;
   cash: string;
+  /** Commission as a percent of the order value, and the minimum fee in PLN; both blank = none. */
+  commissionPct: string;
+  commissionMin: string;
   rows: DraftRow[];
 }
 
@@ -48,6 +66,12 @@ export function emptyRow(): DraftRow {
     rateSource: "manual",
     rateDate: null,
     weightPct: "",
+    price: "",
+    priceCurrency: "PLN",
+    priceRate: "",
+    priceRateSource: "manual",
+    priceRateDate: null,
+    priceDate: "",
   };
 }
 
@@ -56,6 +80,8 @@ export function draftFromStored(p: StoredPortfolio): Draft {
     name: p.name,
     asOf: p.asOf ?? "",
     cash: p.cashPln,
+    commissionPct: p.costs ? fractionToPercent(p.costs.commissionRate) : "",
+    commissionMin: p.costs?.commissionMinPln ?? "",
     rows: p.positions.map((pos) => {
       const v = pos.valuation;
       return {
@@ -70,6 +96,12 @@ export function draftFromStored(p: StoredPortfolio): Draft {
         rateSource: v.mode === "fx" ? v.rate.source : "manual",
         rateDate: v.mode === "fx" ? v.rate.effectiveDate : null,
         weightPct: fractionToPercent(pos.targetWeight),
+        price: pos.price?.value ?? "",
+        priceCurrency: pos.price?.currency ?? "PLN",
+        priceRate: pos.price?.rate?.mid ?? "",
+        priceRateSource: pos.price?.rate?.source ?? "manual",
+        priceRateDate: pos.price?.rate?.effectiveDate ?? null,
+        priceDate: pos.price?.quotedOn ?? "",
       };
     }),
   };
@@ -79,6 +111,36 @@ export interface DraftResult {
   /** Present only when the draft is complete and valid, i.e. safe to save. */
   readonly portfolio: StoredPortfolio | null;
   readonly issues: readonly StoredIssue[];
+}
+
+function draftPrice(row: DraftRow): UnitPrice | null {
+  const value = normalizeDecimal(row.price);
+  if (value === null || Number(value) <= 0) return null;
+  const quotedOn = row.priceDate.trim();
+  const when = quotedOn ? { quotedOn } : {};
+  if (row.priceCurrency === "PLN") return { value, currency: "PLN", ...when };
+  const mid = normalizeDecimal(row.priceRate);
+  if (mid === null || Number(mid) <= 0) return null;
+  return {
+    value,
+    currency: row.priceCurrency,
+    rate: {
+      mid,
+      source: row.priceRateSource,
+      effectiveDate: row.priceRateSource === "nbp" ? row.priceRateDate : null,
+    },
+    ...when,
+  };
+}
+
+/** `undefined` = no costs entered, `null` = entered but unreadable. */
+function draftCosts(draft: Draft): StoredPortfolio["costs"] | null | undefined {
+  if (draft.commissionPct.trim() === "" && draft.commissionMin.trim() === "") return undefined;
+  const rate = percentToFraction(draft.commissionPct.trim() === "" ? "0" : draft.commissionPct);
+  const min = amount(draft.commissionMin);
+  if (rate === null || min === null) return null;
+  if (Number(rate) > LIMITS.commissionRate || fractionToPpm(rate) === null) return null;
+  return { commissionRate: rate, commissionMinPln: min };
 }
 
 /** Blank amount fields count as zero (target-only rows have no value yet). */
@@ -118,7 +180,13 @@ export function draftToStored(draft: Draft, base: StoredPortfolio, now: string):
       }
     }
 
-    if (weight !== null && valuation !== null) {
+    let price: UnitPrice | null | undefined;
+    if (row.price.trim() !== "") {
+      price = draftPrice(row);
+      if (price === null) issues.push({ code: "position_price", index });
+    }
+
+    if (weight !== null && valuation !== null && price !== null) {
       const label = row.label.trim();
       const ticker = row.ticker.trim();
       positions.push({
@@ -127,9 +195,13 @@ export function draftToStored(draft: Draft, base: StoredPortfolio, now: string):
         ...(ticker ? { ticker } : {}),
         targetWeight: weight,
         valuation,
+        ...(price ? { price } : {}),
       });
     }
   });
+
+  const costs = draftCosts(draft);
+  if (costs === null) issues.push({ code: "invalid_commission" });
 
   const asOf = draft.asOf.trim();
   const candidate: StoredPortfolio = {
@@ -138,6 +210,7 @@ export function draftToStored(draft: Draft, base: StoredPortfolio, now: string):
     baseCurrency: "PLN",
     ...(asOf ? { asOf } : {}),
     cashPln: cash ?? "0",
+    ...(costs ? { costs } : {}),
     positions,
     createdAt: base.createdAt,
     updatedAt: now,

@@ -8,7 +8,7 @@ export const pl: Dictionary = {
     demoSave: "Zapisz jako mój portfel",
     demoLeave: "Wyjdź z dema",
     disclaimer:
-      "Driftless to matematyczne narzędzie planistyczne, a nie porada inwestycyjna. Wynik to plan kwotowy w PLN, a nie gwarantowane zlecenia na liczbę jednostek; rozliczenie u brokera może się różnić.",
+      "Driftless to matematyczne narzędzie planistyczne, a nie porada inwestycyjna. Wynik to plan kwotowy w PLN; liczba sztuk opiera się na wpisanych przez Ciebie cenach, nie na notowaniach na żywo, a wykonanie zleceń u maklera może się różnić.",
     storageNotice: "Dane są przechowywane tylko na tym urządzeniu. Wyeksportuj kopię zapasową.",
     exportBackup: "Eksportuj kopię",
     storageUnavailableTitle: "Pamięć przeglądarki jest niedostępna",
@@ -143,6 +143,19 @@ export const pl: Dictionary = {
     changedElsewhere:
       "Ten portfel został zmieniony w innej karcie lub oknie. Zapis tutaj nadpisze tamtą zmianę.",
     reload: "Wczytaj zapisaną wersję",
+    unitPriceTitle: "Cena jednostki (do planu w sztukach)",
+    unitPriceHint:
+      "Opcjonalnie. Wpisz cenę, którą widzisz u maklera; Driftless nigdy nie pobiera cen akcji.",
+    unitPrice: "Cena jednostki ({currency})",
+    unitPriceCurrency: "Waluta ceny",
+    unitPriceRate: "Kurs ceny (PLN za 1 {currency})",
+    unitPriceDate: "Cena z dnia",
+    unitPriceDateHint: "Pozwala ostrzec, gdy cena jest stara.",
+    costsTitle: "Koszty maklerskie",
+    costsHint:
+      "Używane tylko w planie w sztukach; zostaw puste, jeśli ich nie ma. Spready nie są modelowane, więc zostaw trochę gotówki zapasu.",
+    commissionPct: "Prowizja (% zlecenia)",
+    commissionMin: "Minimalna opłata za zlecenie (PLN)",
     errorsTitle: "Sprawdź zaznaczone pola",
   },
   rebalance: {
@@ -158,7 +171,7 @@ export const pl: Dictionary = {
     buy: "Kup (PLN)",
     after: "Po zakupie",
     driftAfter: "Odchylenie po",
-    planNote: "To plan kwotowy w PLN, a nie zlecenie na określoną liczbę jednostek.",
+    planNote: "To plan kwotowy w PLN. Plan w sztukach poniżej zamienia go na liczbę jednostek.",
     invalidPortfolio: "Portfel jest nieprawidłowy",
     noPurchases: "Brak sugerowanych zakupów: nic nie jest niedoważone albo brakuje gotówki.",
     tableLabel: "Plan zakupów",
@@ -169,6 +182,31 @@ export const pl: Dictionary = {
     fxLine: "{currency}: {rate} PLN, {source}",
     sourceNbp: "NBP, opublikowany {date}",
     sourceManual: "kurs ręczny",
+    unitsTitle: "Plan w sztukach",
+    unitsIntro:
+      "Ile pełnych jednostek kupić po wpisanych cenach, w ramach gotówki pozostałej po kosztach maklerskich. Koszty zaokrąglane są w górę, więc plan nigdy nie wymaga więcej niż pokazano.",
+    unitsEmpty:
+      "Dodaj cenę jednostki do instrumentów (Instrumenty i cele), aby zobaczyć plan w sztukach.",
+    exportUnitsCsv: "Eksportuj plan w sztukach (CSV)",
+    unitsTableLabel: "Plan zakupów w sztukach",
+    unitsSpent: "Koszt jednostek",
+    unitsFees: "Opłaty maklerskie",
+    unitsLeftover: "Niewykorzystane",
+    colUnits: "Sztuki",
+    colPrice: "Cena",
+    colCost: "Koszt",
+    colFee: "Opłata",
+    colAmountPlan: "Plan kwotowy",
+    noPriceCell: "brak ceny",
+    unitsNote:
+      "Ceny są wpisane przez Ciebie, to nie notowania na żywo. Ceny wykonania, spready i kursy walut u maklera będą się różnić: sprawdź przed złożeniem zleceń.",
+    priceStale: "{name}: cena z {date}, sprzed {days} dni. Sprawdź ją przed zleceniem.",
+    priceUndated: "{name}: cena nie ma daty. Sprawdź ją przed zleceniem.",
+    unitWarnings: {
+      noPrice:
+        "{name} nie ma ceny jednostki, więc jest pomijany, a jego część gotówki zostaje niewykorzystana.",
+      highFee: "{name}: opłaty maklerskie to {share} tego zlecenia.",
+    },
     warnings: {
       notInTarget:
         "Pozycja {isin} nie występuje w alokacji docelowej. Zostaje, ale nie jest kupowana.",
@@ -203,7 +241,7 @@ export const pl: Dictionary = {
     exportBackup: "Eksportuj pełną kopię (JSON)",
     exportCli: "Eksportuj {name} jako CLI portfolio.json",
     exportCliHint:
-      "Zgodny z narzędziem Driftless w wierszu poleceń. Zawiera jeden portfel i żadnych danych tylko-webowych.",
+      "Zgodny z narzędziem Driftless w wierszu poleceń. Zawiera jeden portfel; ceny jednostek i koszty maklerskie są tylko-webowe i zostają pominięte.",
     exportCliNoTargets: "Dodaj wagi docelowe, aby wyeksportować ten portfel w formacie CLI.",
     exportedBackup: "Kopia pobrana.",
     importTitle: "Import",
@@ -257,7 +295,7 @@ export const pl: Dictionary = {
       {
         heading: "Co zostaje na Twoim urządzeniu",
         body: [
-          "Twoje portfele (nazwy, instrumenty i numery ISIN, kwoty, wagi docelowe, gotówka, daty wyceny i zapisane kursy walut) są przechowywane w IndexedDB Twojej przeglądarki. Preferencje (język, motyw, ostatnio otwarty portfel i informacja o zamknięciu komunikatu przy pierwszym uruchomieniu) są w localStorage.",
+          "Twoje portfele (nazwy, instrumenty i numery ISIN, kwoty, wagi docelowe, gotówka, daty wyceny, zapisane kursy walut oraz wpisane ceny jednostek i koszty maklerskie) są przechowywane w IndexedDB Twojej przeglądarki. Preferencje (język, motyw, ostatnio otwarty portfel i informacja o zamknięciu komunikatu przy pierwszym uruchomieniu) są w localStorage.",
           "Wszystkie obliczenia wykonują się w Twojej przeglądarce. Żadne z tych danych nie są wysyłane do nas ani do nikogo innego.",
         ],
       },
@@ -334,6 +372,10 @@ export const pl: Dictionary = {
     position_amount: "Instrument {n}: wartość musi być liczbą nieujemną.",
     position_weight: "Instrument {n}: cel musi mieścić się między 0 a 100%.",
     position_rate: "Instrument {n}: podaj kurs większy od zera.",
+    position_price:
+      "Instrument {n}: podaj cenę większą od zera oraz kurs, jeśli cena nie jest w PLN.",
+    invalid_commission:
+      "Koszty maklerskie: prowizja musi mieścić się między 0% a 10% i mieć najwyżej cztery miejsca po przecinku, a minimum być kwotą nieujemną.",
     duplicate_isin: "Instrument {n}: ten ISIN jest już użyty wyżej.",
   },
 };

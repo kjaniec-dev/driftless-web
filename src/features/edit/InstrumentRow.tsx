@@ -168,6 +168,72 @@ export function InstrumentRow({
             </div>
           )}
         </div>
+
+        <fieldset className="space-y-3 border-t border-border pt-4">
+          <legend className="text-sm font-semibold">{t.edit.unitPriceTitle}</legend>
+          <p className="text-xs text-muted-foreground">{t.edit.unitPriceHint}</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <SelectField
+              label={t.edit.unitPriceCurrency}
+              value={row.priceCurrency}
+              onChange={(e) =>
+                onChange({
+                  priceCurrency: e.target.value as DraftRow["priceCurrency"],
+                  // A rate belongs to one currency: switching currency drops the old one.
+                  priceRate: "",
+                  priceRateSource: "manual",
+                  priceRateDate: null,
+                })
+              }
+            >
+              <option value="PLN">PLN</option>
+              {FX_CURRENCIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </SelectField>
+            <Field
+              label={format(t.edit.unitPrice, { currency: row.priceCurrency })}
+              inputMode="decimal"
+              autoComplete="off"
+              value={row.price}
+              error={
+                show("position_price", row.price.trim() !== "")
+                  ? format(t.issues.position_price, { n: index + 1 })
+                  : undefined
+              }
+              onChange={(e) => onChange({ price: e.target.value })}
+            />
+            {row.priceCurrency !== "PLN" && (
+              <Field
+                label={format(t.edit.unitPriceRate, { currency: row.priceCurrency })}
+                inputMode="decimal"
+                autoComplete="off"
+                value={row.priceRate}
+                hint={
+                  row.priceRateSource === "nbp" && row.priceRateDate
+                    ? format(t.edit.rateNbp, { date: formatDate(row.priceRateDate, lang) })
+                    : t.edit.rateManual
+                }
+                onChange={(e) =>
+                  onChange({
+                    priceRate: e.target.value,
+                    priceRateSource: "manual",
+                    priceRateDate: null,
+                  })
+                }
+              />
+            )}
+            <Field
+              label={t.edit.unitPriceDate}
+              hint={t.edit.unitPriceDateHint}
+              type="date"
+              value={row.priceDate}
+              onChange={(e) => onChange({ priceDate: e.target.value })}
+            />
+          </div>
+        </fieldset>
       </CardContent>
     </Card>
   );

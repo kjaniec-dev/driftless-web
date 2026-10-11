@@ -30,9 +30,18 @@ const fx = portfolio({
         currency: "EUR",
         rate: { mid: "4.2560", effectiveDate: "2026-10-09", source: "nbp" },
       },
+      price: {
+        value: "118.32",
+        currency: "EUR",
+        rate: { mid: "4.2560", effectiveDate: "2026-10-09", source: "nbp" },
+        quotedOn: "2026-10-09",
+      },
     },
-    position(B, "0.3", "250.75"),
+    position(B, "0.3", "250.75", {
+      price: { value: "412.5", currency: "PLN", quotedOn: "2026-10-09" },
+    }),
   ],
+  costs: { commissionRate: "0.0039", commissionMinPln: "5" },
 });
 const sample = [portfolio(), fx];
 const json = (b: unknown) => JSON.stringify(b);
@@ -96,7 +105,7 @@ describe("malformed files are rejected", () => {
   ])("%s", (_n, text, expected) => expect(code(() => parseBackup(text))).toBe(expected));
 
   it("rejects newer schema versions and bad versions", () => {
-    expect(code(() => parseBackup(mutate((b) => (b.schemaVersion = 2))))).toBe(
+    expect(code(() => parseBackup(mutate((b) => (b.schemaVersion = SCHEMA_VERSION + 1))))).toBe(
       "unsupported_version",
     );
     expect(code(() => parseBackup(mutate((b) => (b.schemaVersion = 0))))).toBe("invalid_structure");
@@ -131,10 +140,47 @@ describe("malformed files are rejected", () => {
       "too many instruments",
       (b: Json) => (b.portfolios[0].positions = Array(501).fill(b.portfolios[0].positions[0])),
     ],
+    ["numeric price", (b: Json) => (b.portfolios[1].positions[0].price.value = 118.32)],
+    ["zero price", (b: Json) => (b.portfolios[1].positions[0].price.value = "0")],
+    ["bad price currency", (b: Json) => (b.portfolios[1].positions[0].price.currency = "JPY")],
+    ["foreign price without a rate", (b: Json) => delete b.portfolios[1].positions[0].price.rate],
+    [
+      "PLN price with a rate",
+      (b: Json) =>
+        (b.portfolios[1].positions[1].price.rate = b.portfolios[1].positions[0].price.rate),
+    ],
+    ["bad quote date", (b: Json) => (b.portfolios[1].positions[0].price.quotedOn = "2026-13-40")],
+    ["unknown price key", (b: Json) => (b.portfolios[1].positions[0].price.ask = "1")],
+    ["commission above 10%", (b: Json) => (b.portfolios[1].costs.commissionRate = "0.5")],
+    [
+      "commission finer than 0.0001%",
+      (b: Json) => (b.portfolios[1].costs.commissionRate = "0.0000001"),
+    ],
+    ["negative minimum fee", (b: Json) => (b.portfolios[1].costs.commissionMinPln = "-1")],
+    ["unknown costs key", (b: Json) => (b.portfolios[1].costs.spread = "1")],
     ["duplicate portfolio ids", (b: Json) => (b.portfolios[1].id = b.portfolios[0].id)],
   ])("%s", (_n, fn) => {
     const result = code(() => parseBackup(mutate(fn)));
     expect(["invalid_structure", "invalid_portfolio"]).toContain(result);
+  });
+
+  it("still reads version 1 files, which have no prices or costs", () => {
+    const v1 = (b: Json) => {
+      b.schemaVersion = 1;
+      for (const p of b.portfolios) {
+        delete p.costs;
+        for (const pos of p.positions) delete pos.price;
+      }
+    };
+    const parsed = parseBackup(mutate(v1));
+    expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.portfolios).toHaveLength(2);
+    expect(parsed.portfolios[1]?.costs).toBeUndefined();
+  });
+
+  it("rejects prices and costs in a version 1 file", () => {
+    const priced = (b: Json) => (b.schemaVersion = 1);
+    expect(code(() => parseBackup(mutate(priced)))).toBe("invalid_structure");
   });
 
   it("applies the same rules as the editor (weights, duplicates, ISINs)", () => {

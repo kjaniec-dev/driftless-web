@@ -1,5 +1,6 @@
-import type { Portfolio, Position, Target } from "@/core";
-import { fractionToPercent } from "@/core/decimal";
+import type { Commission, Portfolio, Position, Target, UnitCost } from "@/core";
+import { unitCostFromPrice } from "@/core";
+import { decimalToGrosze, fractionToPercent, fractionToPpm } from "@/core/decimal";
 import type { StoredPortfolio, StoredPosition } from "./model";
 import { positionValue } from "./validate";
 
@@ -30,3 +31,21 @@ export function toEnginePortfolio(p: StoredPortfolio, cashOverride?: number): Po
 
 /** Display helper: weight as a percent string without float noise. */
 export const weightPercent = (pos: StoredPosition): string => fractionToPercent(pos.targetWeight);
+
+/** What the whole-unit plan needs from a stored portfolio: a unit cost per priced instrument. */
+export function toUnitInputs(p: StoredPortfolio): {
+  prices: Map<string, UnitCost>;
+  commission: Commission;
+} {
+  const prices = new Map<string, UnitCost>();
+  for (const pos of p.positions) {
+    if (pos.price) prices.set(pos.isin, unitCostFromPrice(pos.price.value, pos.price.rate?.mid));
+  }
+  const commission: Commission = p.costs
+    ? {
+        ratePpm: fractionToPpm(p.costs.commissionRate) ?? 0,
+        minGrosze: decimalToGrosze(p.costs.commissionMinPln),
+      }
+    : { ratePpm: 0, minGrosze: 0 };
+  return { prices, commission };
+}

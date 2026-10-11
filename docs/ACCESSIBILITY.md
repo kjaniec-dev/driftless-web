@@ -1,4 +1,4 @@
-# Accessibility: Driftless Web 0.1.0
+# Accessibility: Driftless Web 0.2.0
 
 This documents what was tested, what was fixed, and what has **not** been verified. It is not a
 formal WCAG conformance statement: automated and scripted checks find many problems but not all, and

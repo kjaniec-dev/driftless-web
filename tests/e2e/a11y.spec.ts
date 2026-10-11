@@ -9,8 +9,12 @@ const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-prac
 async function scan(page: Page, label: string): Promise<void> {
   // axe reads computed colours, which are in-between values while a CSS transition runs (more
   // often under CI load). Resting colours are what users see, so measure those.
+  // A sticky bar (the editor's save bar) covers whatever happens to sit behind it at the current
+  // scroll position, which is not a property of the page: lay it out in flow for the scan, and
+  // `scroll-padding-bottom` (see styles.css) keeps focused fields clear of it in real use.
   await page.addStyleTag({
-    content: "*,*::before,*::after{transition:none!important;animation:none!important}",
+    content:
+      "*,*::before,*::after{transition:none!important;animation:none!important}.sticky{position:static!important}",
   });
   await page.waitForTimeout(100);
   const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
@@ -95,6 +99,27 @@ for (const scheme of SCHEMES) {
       await scan(page, "rebalance/plan");
       await page.getByLabel("New cash to invest (PLN)").fill("abc");
       await scan(page, "rebalance/invalid");
+    });
+
+    test("editor: unit price in a foreign currency and broker costs", async ({ page }) => {
+      await seedPortfolio(page, "IKE");
+      await go(page, "/edit");
+      await page.getByLabel("Price currency").first().selectOption("EUR");
+      await page
+        .getByLabel(/^Price per unit/)
+        .first()
+        .fill("118,32");
+      await page.getByLabel("Commission (% of the order)").fill("0,39");
+      await expect(page.getByLabel(/^Price rate/).first()).toBeVisible();
+      await scan(page, "editor/prices");
+    });
+
+    test("rebalance: whole-unit plan with price warnings", async ({ page }) => {
+      await openStart(page);
+      await page.getByRole("button", { name: "Try the demo" }).click();
+      await go(page, "/rebalance");
+      await expect(page.getByRole("region", { name: "Whole-unit purchase plan" })).toBeVisible();
+      await scan(page, "rebalance/units");
     });
 
     test("data & privacy: import preview and error", async ({ page }) => {

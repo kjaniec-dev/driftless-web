@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-10-11
+
+### Added
+- **Whole-unit plan** on the Rebalance screen: how many whole units to buy at prices you type in,
+  within the cash left after broker costs. Unit costs are exact and rounded up; the search is
+  deterministic and tested against an exhaustive search. CSV export includes the prices used.
+- **Unit prices** per instrument (PLN or EUR/USD/GBP/CHF with a rate, NBP rates can be fetched for
+  them too) with the date they were read; the plan warns about missing and old prices.
+- **Broker costs** per portfolio: a commission percentage and a minimum fee per order.
+- Demo portfolio now carries illustrative prices and costs so the unit plan is visible.
+
+### Changed
+- Backup schema version 2 (optional `price` and `costs`). Version 1 backups still import.
+- The disclaimers now say that unit counts use prices you typed, not live quotes.
+
+### Notes
+- Automatic quotes are deliberately not included: see `docs/QUOTES.md`.
+
 ## [0.1.0] - 2026-10-10
 
 First public release.

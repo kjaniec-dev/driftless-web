@@ -8,7 +8,7 @@ beforeEach(resetEnvironment);
 
 /** Text of the "Buy" column (second cell) for an instrument row. */
 function buyFor(label: string): string {
-  const row = screen.getByText(label).closest("tr");
+  const row = screen.getAllByText(label)[0]?.closest("tr");
   if (!row) throw new Error(`No row for ${label}`);
   return within(row).getAllByRole("cell")[1]?.textContent ?? "";
 }
@@ -18,17 +18,17 @@ const cashField = () => screen.getByRole("textbox", { name: /new cash to invest/
 describe("RebalanceScreen (demo portfolio)", () => {
   it("shows the buy-only plan that matches the CLI reference case", async () => {
     renderWithApp(<RebalanceScreen />, { demo: true });
-    await waitFor(() => expect(screen.getByText("IS3N")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("IS3N")[0]).toBeInTheDocument());
     expect(digits(buyFor("IS3N"))).toBe("200.00");
     expect(digits(buyFor("EGLN"))).toBe("300.00");
     expect(digits(buyFor("SXR8"))).toBe("0.00");
     expect(screen.getByText(/limited by the available cash/i)).toBeInTheDocument();
-    expect(screen.getByText(/not an order for a number of units/i)).toBeInTheDocument();
+    expect(screen.getByText(/turns it into a number of units/i)).toBeInTheDocument();
   });
 
   it("recalculates when the cash changes and accepts Polish number formatting", async () => {
     renderWithApp(<RebalanceScreen />, { demo: true });
-    await waitFor(() => expect(screen.getByText("IS3N")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("IS3N")[0]).toBeInTheDocument());
     fireEvent.change(cashField(), { target: { value: "1 000,50" } });
     const total = ["IS3N", "EGLN", "SXR8", "EXUS"].reduce(
       (sum, l) => sum + Number(digits(buyFor(l)).replace(",", "")),
@@ -39,7 +39,7 @@ describe("RebalanceScreen (demo portfolio)", () => {
 
   it("offers to go back to the saved cash amount without changing the portfolio", async () => {
     renderWithApp(<RebalanceScreen />, { demo: true });
-    await waitFor(() => expect(screen.getByText("IS3N")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("IS3N")[0]).toBeInTheDocument());
     expect(screen.queryByRole("button", { name: /use saved amount/i })).not.toBeInTheDocument();
     fireEvent.change(cashField(), { target: { value: "50" } });
     fireEvent.click(screen.getByRole("button", { name: /use saved amount/i }));
@@ -48,7 +48,7 @@ describe("RebalanceScreen (demo portfolio)", () => {
 
   it("shows a validation message and no plan for an invalid amount", async () => {
     renderWithApp(<RebalanceScreen />, { demo: true });
-    await waitFor(() => expect(screen.getByText("IS3N")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("IS3N")[0]).toBeInTheDocument());
     fireEvent.change(cashField(), { target: { value: "abc" } });
     expect(screen.getByText("Enter a valid non-negative amount.")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("RebalanceScreen (demo portfolio)", () => {
 
   it("explains when nothing can be purchased", async () => {
     renderWithApp(<RebalanceScreen />, { demo: true });
-    await waitFor(() => expect(screen.getByText("IS3N")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("IS3N")[0]).toBeInTheDocument());
     fireEvent.change(cashField(), { target: { value: "0" } });
     expect(screen.getByText(/No purchases suggested/i)).toBeInTheDocument();
   });

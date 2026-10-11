@@ -47,7 +47,8 @@ export async function addInstrument(page: Page, n: number, input: InstrumentInpu
   });
   await row.getByLabel("ISIN", { exact: true }).fill(input.isin);
   if (input.label) await row.getByLabel("Label (optional)").fill(input.label);
-  if (input.currency) await row.getByLabel("Currency").selectOption(input.currency);
+  if (input.currency)
+    await row.getByLabel("Currency", { exact: true }).selectOption(input.currency);
   await row.getByLabel(/^Current value/).fill(input.value);
   if (input.rate) await row.getByLabel(/^Rate \(PLN per 1/).fill(input.rate);
   await row.getByLabel("Target (%)").fill(input.weight);
