@@ -41,7 +41,7 @@ production. Without this, a direct push to `main` deploys untested code.
 
 1. In a pull request, update `CHANGELOG.md` and the `version` in `package.json`.
 2. Merge it once the required checks are green. Cloudflare builds and deploys production.
-3. Tag the release for the record: `git tag v0.1.0 && git push origin v0.1.0` (a tag does not deploy).
+3. Tag the release for the record: `git tag v0.2.0 && git push origin v0.2.0` (a tag does not deploy).
 4. Run the checklist below.
 
 The libraries are built into their own file (`vendor-*.js`, currently just under Vite's 500 kB warning

@@ -1,4 +1,4 @@
-# Privacy review: Driftless Web 0.1.0
+# Privacy review: Driftless Web 0.2.0
 
 Review date: 2026-10-10. Scope: the application in this repository as built and served as static
 files. It does **not** cover the hosting account, the domain, or the user's device.
@@ -10,7 +10,7 @@ accounts, analytics, advertising or behavioural tracking; no external error repo
 
 | Data | Where it lives | Who can read it | Leaves the device? |
 | --- | --- | --- | --- |
-| Portfolios: names, ISINs, labels, tickers, amounts, weights, cash, dates, saved FX rates | IndexedDB database `driftless` | The user's browser profile (and anything with access to it) | No |
+| Portfolios: names, ISINs, labels, tickers, amounts, weights, cash, dates, saved FX rates, typed unit prices and broker costs | IndexedDB database `driftless` | The user's browser profile (and anything with access to it) | No |
 | Preferences: language, theme, last portfolio id, first-use dismissed | `localStorage`, keys `driftless.*` | Same | No. Holds no financial values (tested) |
 | Demo portfolio | Memory only | n/a | No, and never persisted without consent |
 | Backup / CLI / CSV files | Files the user chooses to download | Whoever holds the file | Only if the user moves it. Plain text, **not encrypted** |

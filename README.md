@@ -12,8 +12,8 @@ money so your portfolio moves back toward its target weights, **by buying only**
 
 ## Status
 
-Phases 1 to 3 of the roadmap are done (version 0.1.0). Phase 4 adds a plan in whole units from prices
-you type in (version 0.2.0). Automatic ETF quotes (a shared cache, rate limits) still depend on a data
+Version 0.2.0: phases 1 to 4 of the roadmap are done. Phase 4 added a plan in whole units from
+prices you type in. Automatic ETF quotes (a shared cache, rate limits) still depend on a data
 licence and are not built: see [`docs/QUOTES.md`](docs/QUOTES.md).
 
 | Area | State |
@@ -178,8 +178,8 @@ merged (see `docs/RELEASE.md`).
 - Storage is per browser profile; there is no sync (a deliberate privacy trade-off). Backups are not
   encrypted.
 - ISINs are validated by format only (as in the CLI), not by check digit.
-- The JavaScript is about 575 kB (about 175 kB gzipped), in two files: the libraries (React, the UI kit,
-  Dexie; about 490 kB) and the app itself (about 90 kB). They are split so that after a release a
+- The JavaScript is about 594 kB (about 180 kB gzipped), in two files: the libraries (React, the UI kit,
+  Dexie; about 490 kB) and the app itself (about 105 kB). They are split so that after a release a
   returning visitor re-downloads only the app file. Splitting the screens into lazily loaded chunks was
   tried and measured: it saved only about 6% on first load, because the libraries dominate, so it was not kept.
 
